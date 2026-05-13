@@ -1,73 +1,204 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { colors } from '../utils/colors';
+import { avaliacaoService } from '../services/avaliacaoService';
+import { AuthContext } from '../contexts/AuthContext';
+
+function parseLines(text) {
+  if (!text || typeof text !== 'string') return [];
+  return text
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 export default function RecipeDetailScreen({ route, navigation }) {
-  const { recipe } = route.params; 
+  const { recipe } = route.params || {};
+  const { user } = useContext(AuthContext);
+  const [avaliacoes, setAvaliacoes] = useState([]);
+  const [avaliacaoLoading, setAvaliacaoLoading] = useState(false);
+  const [nota, setNota] = useState(5);
+  const [comentario, setComentario] = useState('');
+
+  const mediaNota = useMemo(() => {
+    if (avaliacoes.length === 0) return null;
+    const total = avaliacoes.reduce((acc, item) => acc + (item.nota || 0), 0);
+    return (total / avaliacoes.length).toFixed(1);
+  }, [avaliacoes]);
+
+  const carregarAvaliacoes = async () => {
+    if (!recipe?.id) return;
+    setAvaliacaoLoading(true);
+    try {
+      const data = await avaliacaoService.listarPorReceita(recipe.id);
+      setAvaliacoes(data);
+    } catch (err) {
+      console.error('Erro ao carregar avaliações:', err);
+    } finally {
+      setAvaliacaoLoading(false);
+    }
+  };
+
+  const enviarAvaliacao = async () => {
+    if (!user?.id || !recipe?.id) {
+      Alert.alert('Erro', 'Usuário ou receita inválidos.');
+      return;
+    }
+    try {
+      await avaliacaoService.avaliar({
+        usuarioId: user.id,
+        receitaId: recipe.id,
+        nota,
+        comentario: comentario.trim(),
+      });
+      setComentario('');
+      await carregarAvaliacoes();
+      Alert.alert('Sucesso', 'Avaliação enviada.');
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Não foi possível salvar sua avaliação.';
+      Alert.alert('Erro', msg);
+    }
+  };
+
+  useEffect(() => {
+    carregarAvaliacoes();
+  }, [recipe?.id]);
+
+  if (!recipe) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <Text style={styles.muted}>Receita não encontrada.</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backLink}>
+          <Text style={styles.backLinkText}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const imageUri =
+    recipe.imagens && recipe.imagens.length > 0
+      ? recipe.imagens[0]
+      : 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?q=80&w=800';
+  const category =
+    recipe.categorias && recipe.categorias.length > 0 ? recipe.categorias[0] : 'Receita';
+  const ingredientLines = parseLines(recipe.ingredientes);
+  const passoLines = parseLines(recipe.passoAPasso);
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 100}}>
-        
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.imageHeader}>
-          <Image 
-            source={{ uri: recipe.image }} 
-            style={styles.heroImage}
-            resizeMode="cover"
-          />
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+          <Image source={{ uri: imageUri }} style={styles.heroImage} resizeMode="cover" />
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
           <View style={styles.badgeCategory}>
-            <Text style={styles.badgeText}>{recipe.category}</Text>
+            <Text style={styles.badgeText}>{category}</Text>
           </View>
-          
-          <Text style={styles.title}>{recipe.title}</Text>
-          <Text style={styles.author}>por {recipe.author}</Text>
-          
+
+          <Text style={styles.title}>{recipe.titulo}</Text>
+          <Text style={styles.author}>por {recipe.autorNome || 'Chef'}</Text>
+
           <View style={styles.infoRow}>
-            <div style={styles.infoBox}>
+            <View style={styles.infoBox}>
               <Ionicons name="time-outline" size={22} color={colors.primary} />
-              <Text style={styles.infoText}>{recipe.time}</Text>
-            </div>
-            <div style={styles.infoBox}>
-              <Ionicons name="flame-outline" size={22} color={colors.danger} />
-              <Text style={styles.infoText}>{recipe.calories}</Text>
-            </div>
-            <div style={styles.infoBox}>
-              <Ionicons name="star" size={22} color={colors.secondary} />
-              <Text style={styles.infoText}>{recipe.rating} Aval.</Text>
-            </div>
+              <Text style={styles.infoText}>{recipe.tempoPreparo ?? '—'} min</Text>
+            </View>
+            <View style={styles.infoBox}>
+              <Ionicons name="star" size={22} color={colors.accent} />
+              <Text style={styles.infoText} numberOfLines={1}>
+                {mediaNota ? `${mediaNota} / 5` : 'Sem nota'}
+              </Text>
+            </View>
           </View>
 
           <Text style={styles.sectionTitle}>Ingredientes</Text>
           <View style={styles.listContainer}>
-            {recipe.ingredients.map((ing, idx) => (
-              <Text key={idx} style={styles.listItem}>• {ing}</Text>
-            ))}
+            {ingredientLines.length > 0 ? (
+              ingredientLines.map((ing, idx) => (
+                <Text key={idx} style={styles.listItem}>
+                  • {ing}
+                </Text>
+              ))
+            ) : (
+              <Text style={styles.listItem}>{recipe.ingredientes || '—'}</Text>
+            )}
           </View>
 
-          <Text style={styles.sectionTitle}>Modo de Preparo</Text>
-          {recipe.steps.map((step, idx) => (
-            <View key={idx} style={styles.stepBox}>
-              <Text style={styles.stepNum}>{idx + 1}</Text>
-              <Text style={styles.paragraph}>{step}</Text>
+          <Text style={styles.sectionTitle}>Modo de preparo</Text>
+          {passoLines.length > 0 ? (
+            passoLines.map((step, idx) => (
+              <View key={idx} style={styles.stepBox}>
+                <Text style={styles.stepNum}>{idx + 1}</Text>
+                <Text style={styles.paragraph}>{step}</Text>
+              </View>
+            ))
+          ) : (
+            <View style={styles.listContainer}>
+              <Text style={styles.paragraph}>{recipe.passoAPasso || '—'}</Text>
             </View>
-          ))}
-          
+          )}
+
+          <Text style={styles.sectionTitle}>Avaliações</Text>
+          <View style={styles.listContainer}>
+            <Text style={styles.mutedSmall}>
+              {avaliacoes.length > 0
+                ? `${avaliacoes.length} avaliação(ões)${mediaNota ? ` • média ${mediaNota}` : ''}`
+                : 'Ainda não há avaliações para esta receita.'}
+            </Text>
+
+            <View style={styles.starsRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setNota(star)}>
+                  <Ionicons
+                    name={star <= nota ? 'star' : 'star-outline'}
+                    size={24}
+                    color={star <= nota ? colors.accent : colors.gray}
+                    style={{ marginRight: 6 }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              value={comentario}
+              onChangeText={setComentario}
+              placeholder="Comente sua experiência (opcional)"
+              style={styles.commentInput}
+              multiline
+            />
+            <TouchableOpacity style={styles.rateBtn} onPress={enviarAvaliacao}>
+              <Text style={styles.rateBtnText}>Enviar avaliação</Text>
+            </TouchableOpacity>
+
+            {avaliacaoLoading ? (
+              <ActivityIndicator color={colors.primary} style={{ marginTop: 12 }} />
+            ) : (
+              avaliacoes.slice(0, 5).map((item) => (
+                <View key={item.id} style={styles.reviewItem}>
+                  <Text style={styles.reviewName}>{item.usuarioNome}</Text>
+                  <Text style={styles.reviewMeta}>Nota: {item.nota}/5</Text>
+                  {!!item.comentario && <Text style={styles.reviewComment}>{item.comentario}</Text>}
+                </View>
+              ))
+            )}
+          </View>
         </View>
       </ScrollView>
 
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.mainBtn} activeOpacity={0.8}>
           <Ionicons name="play-circle-outline" size={24} color={colors.white} />
-          <Text style={styles.mainBtnText}>Cozinhar Agora</Text>
+          <Text style={styles.mainBtnText}>Cozinhar agora</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.saveBtn} activeOpacity={0.8}>
           <Ionicons name="heart-outline" size={26} color={colors.primary} />
         </TouchableOpacity>
@@ -80,6 +211,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  muted: {
+    color: colors.gray,
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  backLink: {
+    padding: 12,
+  },
+  backLinkText: {
+    color: colors.primary,
+    fontWeight: 'bold',
   },
   imageHeader: {
     height: 300,
@@ -130,7 +278,7 @@ const styles = StyleSheet.create({
   },
   author: {
     fontSize: 16,
-    color: colors.textLight,
+    color: colors.gray,
     marginBottom: 24,
     fontWeight: '500',
   },
@@ -143,8 +291,10 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     borderWidth: 1,
     borderColor: colors.border,
+    gap: 12,
   },
   infoBox: {
+    flex: 1,
     alignItems: 'center',
   },
   infoText: {
@@ -152,6 +302,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.text,
     marginTop: 6,
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 22,
@@ -184,19 +335,68 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     color: colors.white,
     textAlign: 'center',
-    textAlignVertical: 'center',
     lineHeight: 30,
     borderRadius: 15,
     fontWeight: 'bold',
     fontSize: 14,
     marginRight: 12,
     marginTop: 2,
+    overflow: 'hidden',
   },
   paragraph: {
     flex: 1,
     fontSize: 16,
     color: '#444',
     lineHeight: 24,
+  },
+  mutedSmall: {
+    color: colors.gray,
+    marginBottom: 12,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    padding: 10,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    backgroundColor: '#FFF',
+  },
+  rateBtn: {
+    marginTop: 10,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  rateBtnText: {
+    color: colors.white,
+    fontWeight: 'bold',
+  },
+  reviewItem: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: 10,
+    marginTop: 8,
+  },
+  reviewName: {
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  reviewMeta: {
+    color: colors.gray,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  reviewComment: {
+    color: colors.text,
+    marginTop: 4,
   },
   bottomBar: {
     position: 'absolute',
@@ -240,5 +440,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: colors.primary,
-  }
+  },
 });

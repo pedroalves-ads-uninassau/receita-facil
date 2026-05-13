@@ -1,72 +1,65 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { RECIPES_MOCK } from '../mocks/recipes';
-import RecipeCard from '../components/RecipeCard'; // Usando o componente global
+import { colors } from '../utils/colors';
+import { useFavorites } from '../hooks/useFavorites';
+import RecipeCard from '../components/RecipeCard';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function FavoritesScreen({ navigation }) {
-  
-  // Supondo que o usuário tenha favoritado as duas primeiras
-  const FAVORITES = [RECIPES_MOCK[1], RECIPES_MOCK[0]];
+  const { favorites, loading, loadFavorites } = useFavorites();
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFavorites();
+    }, [loadFavorites])
+  );
 
   const goToDetail = (recipe) => {
     navigation.navigate('RecipeDetail', { recipe });
   };
 
-  const removeFavorite = (recipeTitle) => {
-    alert(`Removeu ${recipeTitle} dos favoritos! (Simulação)`);
-  };
+  if (loading && favorites.length === 0) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="heart" size={28} color={colors.danger} />
-        <Text style={styles.title}>Meus Favoritos</Text>
-      </View>
-      <Text style={styles.subtitle}>Sua biblioteca de pratos perfeitos.</Text>
-
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {FAVORITES.map(item => (
+      <FlatList
+        data={favorites}
+        keyExtractor={(item) => item.id.idReceita.toString()}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={loadFavorites} />
+        }
+        renderItem={({ item }) => (
           <RecipeCard 
-            key={item.id} 
-            recipe={item} 
-            onPress={() => goToDetail(item)}
-            showRemove={true}
-            onRemove={() => removeFavorite(item.title)}
+            recipe={item.receita} 
+            onPress={() => goToDetail(item.receita)}
+            variant="compact"
           />
-        ))}
-      </ScrollView>
+        )}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="heart-dislike-outline" size={80} color={colors.border} />
+            <Text style={styles.emptyTitle}>Sua lista está vazia</Text>
+            <Text style={styles.emptyText}>Favorite receitas no Swipe para salvá-las aqui.</Text>
+          </View>
+        )}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 30,
-    marginBottom: 5,
-  },
-  title: { 
-    fontSize: 26, 
-    fontWeight: '800', 
-    color: colors.text,
-    marginLeft: 10,
-  },
-  subtitle: { 
-    fontSize: 16, 
-    color: colors.textLight, 
-    paddingHorizontal: 24,
-    marginBottom: 20, 
-  },
-  scroll: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  }
+  container: { flex: 1, backgroundColor: colors.background },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  list: { padding: 20 },
+  emptyContainer: { alignItems: 'center', marginTop: 120, padding: 40 },
+  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: colors.text, marginTop: 20 },
+  emptyText: { textAlign: 'center', marginTop: 10, color: colors.gray, fontSize: 16 }
 });

@@ -4,8 +4,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; 
+import { AuthProvider } from './src/contexts/AuthContext';
 
-import { colors } from './src/theme/colors';
+import { colors } from './src/utils/colors';
 
 // Auth Screens
 import LoginScreen from './src/screens/LoginScreen';
@@ -13,12 +14,12 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 
 // Main Content Screens
-import HomeScreen from './src/screens/HomeScreen';
+import SwipeScreen from './src/screens/SwipeScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
-import AddRecipeScreen from './src/screens/AddRecipeScreen';
+import CreateRecipeScreen from './src/screens/CreateRecipeScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -52,7 +53,7 @@ function MainTabs() {
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeScreen} options={{ title: 'Swipe', tabBarLabel: 'Swipe' }} />
+      <Tab.Screen name="HomeTab" component={SwipeScreen} options={{ title: 'Swipe', tabBarLabel: 'Swipe' }} />
       <Tab.Screen name="SearchTab" component={SearchScreen} options={{ title: 'Buscar', tabBarLabel: 'Buscar', headerShown: false }} />
       <Tab.Screen name="FavoritesTab" component={FavoritesScreen} options={{ title: 'Salvos', tabBarLabel: 'Favoritos' }} />
       <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ title: 'Perfil', tabBarLabel: 'Perfil' }} />
@@ -62,17 +63,19 @@ function MainTabs() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <StatusBar style="dark" backgroundColor={colors.background} />
-      {/* Configuração de Rotas e Telas */}
-      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="Home" component={MainTabs} />
-        <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
-        <Stack.Screen name="AddRecipe" component={AddRecipeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <AuthProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" backgroundColor={colors.background} />
+        {/* Configuração de Rotas e Telas */}
+        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="Home" component={MainTabs} />
+          <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+          <Stack.Screen name="AddRecipe" component={CreateRecipeScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthProvider>
   );
 }

@@ -1,16 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { AuthContext } from '../contexts/AuthContext';
+import { colors } from '../utils/colors';
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [tipoUsuario, setTipoUsuario] = useState('COMUM');
+  const { register, loading } = useContext(AuthContext);
 
-  const handleRegister = () => {
-    // Navigate to Home Tab Navigator after registering
-    navigation.replace('Home');
+  const handleRegister = async () => {
+    if (!name || !email || !password) {
+      Alert.alert('Campos obrigatórios', 'Preencha nome, e-mail e senha.');
+      return;
+    }
+    try {
+      await register({
+        nome: name.trim(),
+        email: email.trim().toLowerCase(),
+        senha: password,
+        tipoUsuario,
+      });
+      navigation.replace('Home');
+    } catch (err) {
+      Alert.alert('Falha no cadastro', err.message);
+    }
   };
 
   return (
@@ -19,7 +36,7 @@ const RegisterScreen = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
           
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#FF7F24" />
+            <Ionicons name="arrow-back" size={24} color={colors.primary} />
             <Text style={styles.backButtonText}>Voltar</Text>
           </TouchableOpacity>
 
@@ -28,10 +45,24 @@ const RegisterScreen = ({ navigation }) => {
               <Ionicons name="person-add" size={32} color="#FFF" />
             </View>
             <Text style={styles.title}>Nova Conta</Text>
-            <Text style={styles.subtitle}>Junte-se aos melhores chefs</Text>
+            <Text style={styles.subtitle}>Crie sua conta e escolha seu perfil</Text>
           </View>
 
           <View style={styles.formCard}>
+            <Text style={styles.roleLabel}>Perfil</Text>
+            <View style={styles.roleRow}>
+              {['COMUM', 'CHEF', 'ADMIN'].map((role) => (
+                <TouchableOpacity
+                  key={role}
+                  style={[styles.roleButton, tipoUsuario === role && styles.roleButtonActive]}
+                  onPress={() => setTipoUsuario(role)}
+                >
+                  <Text style={[styles.roleButtonText, tipoUsuario === role && styles.roleButtonTextActive]}>
+                    {role}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             
             <View style={styles.inputContainer}>
               <Ionicons name="person-outline" size={20} color="#888" style={styles.inputIcon} />
@@ -73,8 +104,8 @@ const RegisterScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.button} onPress={handleRegister} activeOpacity={0.8}>
-              <Text style={styles.buttonText}>Cadastrar</Text>
+            <TouchableOpacity style={styles.button} onPress={handleRegister} activeOpacity={0.8} disabled={loading}>
+              {loading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.buttonText}>Cadastrar</Text>}
             </TouchableOpacity>
 
             <View style={styles.loginContainer}>
@@ -94,7 +125,7 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E7', // Creme fundo
+    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -113,7 +144,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#FF7F24', // Laranja
+    color: colors.primary,
     fontWeight: 'bold',
     marginLeft: 4,
   },
@@ -125,12 +156,12 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#3DAE60', // Verde (nova conta/esperança)
+    backgroundColor: colors.success,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
     elevation: 4,
-    shadowColor: '#3DAE60',
+    shadowColor: colors.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
@@ -138,12 +169,44 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#23374C', // Azul marinho
+    color: colors.text,
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
+  },
+  roleLabel: {
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  roleRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  roleButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: '#FAFAFA',
+  },
+  roleButtonActive: {
+    borderColor: colors.primary,
+    backgroundColor: '#FFF3E8',
+  },
+  roleButtonText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  roleButtonTextActive: {
+    color: colors.primary,
+    fontWeight: 'bold',
   },
   formCard: {
     backgroundColor: '#FFF',
@@ -180,7 +243,7 @@ const styles = StyleSheet.create({
     color: '#23374C',
   },
   button: {
-    backgroundColor: '#3DAE60', // Verde para o botão principal de casdastro
+    backgroundColor: colors.success,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -203,7 +266,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   loginLink: {
-    color: '#FF7F24', // Laranja link
+    color: colors.primary,
     fontSize: 15,
     fontWeight: 'bold',
   },

@@ -1,114 +1,88 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { colors } from '../utils/colors';
 
-export default function RecipeCard({ recipe, onPress, showRemove, onRemove }) {
+export default function RecipeCard({ recipe, onPress, variant = 'compact' }) {
+  const imageUrl = recipe.imagens && recipe.imagens.length > 0 
+    ? recipe.imagens[0] 
+    : 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?q=80&w=400';
+
   return (
-    <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={onPress}>
+    <TouchableOpacity 
+      style={[styles.card, variant === 'compact' ? styles.compact : styles.full]} 
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
       
-      <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: recipe.image }} 
-          style={styles.cardImage}
-          resizeMode="cover"
-        />
-      </View>
-      
-      <View style={styles.cardInfo}>
-        <Text style={styles.cardTitle} numberOfLines={1}>{recipe.title}</Text>
-        <Text style={styles.cardAuthor}>por {recipe.author}</Text>
+      <View style={styles.content}>
+        <Text style={styles.title} numberOfLines={1}>{recipe.titulo}</Text>
         
-        <View style={styles.recipeMeta}>
-          {recipe.rating && (
-            <View style={styles.metaBadge}>
-              <Ionicons name="star" size={12} color={colors.secondary} />
-              <Text style={styles.metaTextRating}>{recipe.rating}</Text>
-            </View>
-          )}
-          <View style={[styles.metaBadge, recipe.rating && {marginLeft: 8}]}>
-            <Ionicons name="time-outline" size={12} color={colors.textLight} />
-            <Text style={styles.metaText}>{recipe.time}</Text>
+        <View style={styles.footer}>
+          <View style={styles.meta}>
+            <Ionicons name="time-outline" size={14} color={colors.primary} style={{marginRight: 4}} />
+            <Text style={styles.timeText}>{recipe.tempoPreparo} min</Text>
           </View>
+          
+          <Text style={styles.author} numberOfLines={1}>Por {recipe.autorNome || 'Chef'}</Text>
         </View>
       </View>
-
-      {showRemove && (
-        <TouchableOpacity style={styles.removeBtn} activeOpacity={0.5} onPress={onRemove}>
-          <Ionicons name="trash-outline" size={22} color={colors.danger} />
-        </TouchableOpacity>
-      )}
-
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { 
-    flexDirection: 'row', 
-    backgroundColor: colors.white, 
-    borderRadius: 16, 
-    marginBottom: 16, 
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.border
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    marginBottom: 16,
   },
-  imageContainer: {
-    width: 100,
+  compact: {
+    flexDirection: 'row',
     height: 100,
   },
-  cardImage: { 
-    width: '100%',
+  full: {
+    height: 250,
+  },
+  image: {
+    width: 100,
     height: '100%',
   },
-  cardInfo: { 
+  content: {
     flex: 1,
-    padding: 12, 
-    justifyContent: 'center' 
-  },
-  cardTitle: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    color: colors.text,
-    marginBottom: 4
-  },
-  cardAuthor: { 
-    fontSize: 13, 
-    color: colors.primary,
-    marginBottom: 8
-  },
-  recipeMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  metaBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  metaTextRating: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.secondary,
-    marginLeft: 4,
-  },
-  metaText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.textLight,
-    marginLeft: 4,
-  },
-  removeBtn: {
-    padding: 16,
+    padding: 12,
     justifyContent: 'center',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  meta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeText: {
+    fontSize: 12,
+    color: colors.gray,
+    fontWeight: '600'
+  },
+  author: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '700'
   }
 });
