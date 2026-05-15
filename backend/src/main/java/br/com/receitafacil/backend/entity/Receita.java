@@ -1,8 +1,22 @@
 package br.com.receitafacil.backend.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name = "receitas")
@@ -23,12 +37,24 @@ public class Receita {
     @Column(columnDefinition = "TEXT")
     private String ingredientes;
     
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", insertable = false, updatable = false)
+    private Usuario autor;
+    
     @Column(name = "usuario_id")
     private Long usuarioId;
 
-    // Campos opcionais para manter compatibilidade com o front
-    private String categoria;
-    
-    @Column(length = 1000)
-    private String image;
+    @OneToMany(mappedBy = "receita", cascade = CascadeType.ALL)
+    private List<Imagem> imagens;
+
+    @ManyToMany
+    @JoinTable(name = "receita_categoria", 
+        joinColumns = @JoinColumn(name = "receita_id"), 
+        inverseJoinColumns = @JoinColumn(name = "categoria_id")
+    )
+    private List<Categoria> categorias;
+
+    @ManyToMany(mappedBy = "receitasFavoritas")
+    @JsonIgnore
+    private List<Usuario> usuarioQueFavoritaram;
 }
