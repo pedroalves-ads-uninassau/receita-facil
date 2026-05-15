@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.receitafacil.backend.entity.Receita;
+import br.com.receitafacil.backend.exception.ReceitaNotFoundException;
 import br.com.receitafacil.backend.repository.ReceitaRepository;
 
 @SuppressWarnings("null")
@@ -28,7 +29,8 @@ public class ReceitaService {
     }
 
     public Receita buscarPorId(Long id) {
-        return repository.findById(id).orElse(null);
+        return repository.findById(id)
+        .orElseThrow(() -> new ReceitaNotFoundException("Receita não encontrada"));
     }
 
     public void excluir(Long id) {
