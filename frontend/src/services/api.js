@@ -2,7 +2,8 @@
 // Trocado de localhost para o IP da máquina na rede Wi-Fi para funcionar no Expo Go (iPhone)
 import { Platform } from 'react-native';
 
-const BASE_URL = 'http://192.168.100.125:8080';
+// Usar localhost para testar no computador. Se for testar no celular físico, coloque o IP do seu Wi-Fi.
+const BASE_URL = 'http://localhost:8080';
 
 export const getReceitas = async () => {
     try {

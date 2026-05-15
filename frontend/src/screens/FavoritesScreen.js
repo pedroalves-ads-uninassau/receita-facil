@@ -1,81 +1,76 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import RecipeCard from '../components/RecipeCard'; // Usando o componente global
-import { getReceitas } from '../services/api';
 
 export default function FavoritesScreen({ navigation }) {
-  const [favorites, setFavorites] = React.useState([]);
-
-  React.useEffect(() => {
-    // Simulação: carregamos as receitas da API e pegamos as duas primeiras como favoritos falsos para demonstrar
-    getReceitas().then(data => {
-      if (data && data.length >= 2) {
-        setFavorites([data[0], data[1]]);
-      } else {
-        setFavorites(data);
-      }
-    });
-  }, []);
-
-  const goToDetail = (recipe) => {
-    navigation.navigate('RecipeDetail', { recipe });
-  };
-
-  const removeFavorite = (recipeTitle) => {
-    alert(`Removeu ${recipeTitle} dos favoritos! (Simulação)`);
-  };
-
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="heart" size={28} color={colors.danger} />
-        <Text style={styles.title}>Meus Favoritos</Text>
-      </View>
-      <Text style={styles.subtitle}>Sua biblioteca de pratos perfeitos.</Text>
+      <TouchableOpacity style={styles.botaoVoltarTopo} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="#23374C" />
+      </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {favorites.map(item => (
-          <RecipeCard 
-            key={item.id} 
-            recipe={item} 
-            onPress={() => goToDetail(item)}
-            showRemove={true}
-            onRemove={() => removeFavorite(item.title)}
-          />
-        ))}
-      </ScrollView>
+      <View style={styles.content}>
+        <Ionicons name="heart-outline" size={80} color="#FF7F24" />
+        <Text style={styles.titulo}>Favoritos</Text>
+        <Text style={styles.aviso}>Em Construção</Text>
+        <Text style={styles.subaviso}>Suas receitas salvas aparecerão aqui.</Text>
+        
+        <TouchableOpacity style={styles.botao} onPress={() => navigation.goBack()}>
+          <Text style={styles.textoBotao}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.background,
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF8E7',
   },
-  header: {
-    flexDirection: 'row',
+  botaoVoltarTopo: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 30,
-    marginBottom: 5,
+    padding: 30,
   },
-  title: { 
-    fontSize: 26, 
-    fontWeight: '800', 
-    color: colors.text,
-    marginLeft: 10,
+  titulo: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#23374C',
+    marginTop: 20,
   },
-  subtitle: { 
-    fontSize: 16, 
-    color: colors.textLight, 
-    paddingHorizontal: 24,
-    marginBottom: 20, 
+  aviso: {
+    fontSize: 20,
+    color: '#FF7F24',
+    fontWeight: 'bold',
+    marginTop: 10,
   },
-  scroll: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+  subaviso: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 40,
+  },
+  botao: {
+    backgroundColor: '#FF7F24',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+  },
+  textoBotao: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   }
 });

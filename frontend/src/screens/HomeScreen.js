@@ -1,316 +1,244 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
 import { getReceitas } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [recipes, setRecipes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [receitas, setReceitas] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [indiceAtual, setIndiceAtual] = useState(0);
 
+  // Busca no backend quando a tela abre
   useEffect(() => {
-    loadRecipes();
+    carregarDoBanco();
   }, []);
 
-  const loadRecipes = async () => {
-    setLoading(true);
-    const data = await getReceitas();
-    setRecipes(data);
-    setLoading(false);
-  };
-
-  const goToDetail = (recipe) => {
-    navigation.navigate('RecipeDetail', { recipe });
-  };
-
-  const handleSwipe = (direction) => {
-    if (currentIndex < recipes.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      alert('Você chegou ao fim das receitas de hoje!');
+  async function carregarDoBanco() {
+    try {
+      setCarregando(true);
+      const data = await getReceitas();
+      setReceitas(data);
+    } catch (error) {
+      console.log("Erro ao buscar receitas:", error);
+    } finally {
+      setCarregando(false);
     }
-  };
+  }
 
-  if (loading) {
+  // Função que passa para a próxima receita quando clica nos botões (X ou Coração)
+  function proximaReceita() {
+    if (indiceAtual < receitas.length - 1) {
+      setIndiceAtual(indiceAtual + 1);
+    } else {
+      alert('Fim da linha! Você já viu todas as receitas de hoje.');
+    }
+  }
+
+  function verDetalhes() {
+    navigation.navigate('RecipeDetail');
+  }
+
+  if (carregando) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{marginTop: 10, color: colors.textLight}}>Buscando receitas fresquinhas...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF7F24" />
+        <Text style={styles.loadingTexto}>Procurando pratos incríveis...</Text>
       </View>
     );
   }
 
-  const recipe = recipes[currentIndex];
+  // Pega a receita atual baseada no índice numérico
+  const receitaAtiva = receitas[indiceAtual];
 
-  if (!recipe) {
+  if (!receitaAtiva) {
     return (
-      <View style={[styles.container, styles.center]}>
-         <Ionicons name="restaurant-outline" size={60} color={colors.primary} style={{marginBottom: 20}} />
-         <Text style={styles.noMoreText}>Isso é tudo!</Text>
-         <Text style={styles.noMoreSub}>Volte mais tarde para novas descobertas.</Text>
+      <View style={styles.loadingContainer}>
+        <Ionicons name="restaurant-outline" size={80} color="#FF7F24" />
+        <Text style={styles.loadingTexto}>Nenhuma receita encontrada!</Text>
+        <Text style={styles.subTexto}>Verifique se o backend está ligado.</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.swipeHeader}>
-        <View style={styles.activeTab}>
-          <Ionicons name="flame" size={20} color={colors.primary} />
-          <Text style={styles.activeTabText}>Para Você</Text>
+      {/* Card Gigante (Estilo Swipe) */}
+      <TouchableOpacity activeOpacity={0.9} style={styles.cardGigante} onPress={verDetalhes}>
+        <Image 
+          source={{ uri: receitaAtiva.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80' }} 
+          style={styles.imagemReceita}
+        />
+        
+        {/* Etiqueta flutuante de categoria */}
+        <View style={styles.etiquetaCategoria}>
+          <Text style={styles.textoEtiqueta}>{receitaAtiva.categoria || 'Geral'}</Text>
         </View>
-        <TouchableOpacity style={styles.inactiveTab}>
-          <Text style={styles.inactiveTabText}>Seguindo</Text>
-        </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity 
-        style={styles.cardContainer} 
-        activeOpacity={0.9} 
-        onPress={() => goToDetail(recipe)} 
-      >
-         <View style={styles.cardImageContainer}>
-            <Image 
-              source={{ uri: recipe.image }} 
-              style={styles.cardImage}
-              resizeMode="cover"
-            />
-            
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryBadgeText}>{recipe.category}</Text>
+        <View style={styles.infoReceita}>
+          <Text style={styles.tituloReceita}>{receitaAtiva.titulo}</Text>
+          
+          <View style={styles.tagsArea}>
+            <View style={styles.tag}>
+              <Ionicons name="time-outline" size={18} color="#666" />
+              <Text style={styles.textoTag}>{receitaAtiva.tempo_preparo || 15} min</Text>
             </View>
-         </View>
-
-         <View style={styles.cardInfo}>
-            <View style={styles.titleRow}>
-              <Text style={styles.cardTitle}>{recipe.title}</Text>
-              <View style={styles.ratingBadge}>
-                <Ionicons name="star" size={12} color={colors.secondary} />
-                <Text style={styles.ratingText}>{recipe.rating}</Text>
-              </View>
+            <Text style={styles.bolinha}>•</Text>
+            <View style={styles.tag}>
+              <Ionicons name="person-outline" size={18} color="#666" />
+              <Text style={styles.textoTag}>Chef {receitaAtiva.usuario_id || 1}</Text>
             </View>
-            
-            <View style={styles.authorRow}>
-              <View style={styles.authorAvatar}>
-                <Ionicons name="person" size={12} color={colors.white} />
-              </View>
-              <Text style={styles.cardAuthor}>{recipe.author}</Text>
-              <Text style={styles.dot}>•</Text>
-              <Ionicons name="time-outline" size={16} color={colors.textLight} style={{marginRight: 4}} />
-              <Text style={styles.cardTime}>{recipe.time}</Text>
-            </View>
-         </View>
+          </View>
+        </View>
       </TouchableOpacity>
-      
-      <View style={styles.actions}>
-         <TouchableOpacity 
-           style={[styles.actionButton, styles.buttonDislike]} 
-           onPress={() => handleSwipe('left')}
-           activeOpacity={0.7}
-         >
-            <Ionicons name="close" size={32} color={colors.danger} />
-         </TouchableOpacity>
 
-         <TouchableOpacity 
-           style={[styles.actionButton, styles.buttonLike]} 
-           onPress={() => handleSwipe('right')}
-           activeOpacity={0.7}
-         >
-            <Ionicons name="heart" size={32} color={colors.success} />
-         </TouchableOpacity>
+      {/* Botões do "Tinder" de Receitas */}
+      <View style={styles.areaBotoes}>
+        <TouchableOpacity style={[styles.botaoCirculo, styles.bordaVermelha]} onPress={proximaReceita}>
+          <Ionicons name="close" size={40} color="#FF3B30" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.botaoCirculo, styles.bordaVerde]} onPress={proximaReceita}>
+          <Ionicons name="heart" size={40} color="#34C759" />
+        </TouchableOpacity>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.background, 
-    alignItems: 'center', 
-    paddingTop: 20,
-  },
-  center: { 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    padding: 30
-  },
-  swipeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 25,
-    padding: 4,
-    width: '70%',
-  },
-  activeTab: {
+  container: {
     flex: 1,
-    flexDirection: 'row',
+    backgroundColor: '#FFF8E7',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-    paddingVertical: 8,
-    borderRadius: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    paddingTop: 50,
   },
-  activeTabText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginLeft: 6,
-  },
-  inactiveTab: {
+  loadingContainer: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: '#FFF8E7',
     justifyContent: 'center',
-    paddingVertical: 8,
+    alignItems: 'center',
   },
-  inactiveTabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textLight,
-  },
-  noMoreText: { 
-    fontSize: 24, 
-    color: colors.text, 
+  loadingTexto: {
+    marginTop: 15,
+    fontSize: 18,
+    color: '#23374C',
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10
   },
-  noMoreSub: {
-    fontSize: 16,
-    color: colors.textLight,
-    textAlign: 'center'
+  subTexto: {
+    marginTop: 5,
+    color: '#888',
   },
-  cardContainer: {
-    width: width * 0.9,
-    height: height * 0.58,
-    backgroundColor: colors.white,
-    borderRadius: 30,
-    elevation: 10,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    overflow: 'hidden',
-    marginBottom: 30,
-  },
-  cardImageContainer: { 
-    flex: 4, 
-    position: 'relative',
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  categoryBadge: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    elevation: 4,
-  },
-  categoryBadgeText: {
-    fontWeight: 'bold',
-    color: colors.white,
-    fontSize: 12,
-    textTransform: 'uppercase',
-  },
-  cardInfo: { 
-    padding: 24, 
-    backgroundColor: colors.white,
-  },
-  titleRow: {
+  header: {
+    width: '90%',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  menuAbas: {
+    flexDirection: 'row',
+    backgroundColor: '#EBE2CD',
+    borderRadius: 25,
+    padding: 5,
+    width: '60%',
+    alignItems: 'center',
+  },
+  abaAtiva: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    elevation: 2,
+  },
+  textoAbaAtiva: {
+    fontWeight: 'bold',
+    color: '#23374C',
+    marginLeft: 5,
+  },
+  textoAbaInativa: {
+    color: '#888',
+    marginLeft: 15,
+    fontWeight: 'bold',
+  },
+  cardGigante: {
+    width: width * 0.9,
+    height: height * 0.6, // Ocupa quase a tela toda
+    backgroundColor: '#FFF',
+    borderRadius: 25,
+    overflow: 'hidden',
+    elevation: 8, // Sombra grande
+  },
+  imagemReceita: {
+    width: '100%',
+    flex: 1, // Preenche todo o espaço sobrando
+  },
+  etiquetaCategoria: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    backgroundColor: '#FF7F24',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+  },
+  textoEtiqueta: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  infoReceita: {
+    padding: 20,
+    backgroundColor: '#FFF',
+  },
+  tituloReceita: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#23374C',
     marginBottom: 10,
   },
-  cardTitle: { 
-    flex: 1,
-    fontSize: 26, 
-    fontWeight: '900', 
-    color: colors.text, 
-    marginRight: 10,
-  },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.secondary,
-    marginLeft: 4,
-  },
-  authorRow: {
+  tagsArea: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  authorAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  textoTag: {
+    marginLeft: 5,
+    color: '#666',
+    fontSize: 15,
+  },
+  bolinha: {
+    marginHorizontal: 10,
+    color: '#CCC',
+  },
+  areaBotoes: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'center',
+    marginTop: 30,
+    gap: 40, // Espaço entre os botões
+  },
+  botaoCirculo: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
-  },
-  cardAuthor: { 
-    fontSize: 14, 
-    color: colors.text,
-    fontWeight: '700',
-  },
-  dot: {
-    color: colors.border,
-    marginHorizontal: 8,
-    fontSize: 18,
-  },
-  cardTime: {
-    fontSize: 14,
-    color: colors.textLight,
-    fontWeight: '500',
-  },
-  actions: { 
-    flexDirection: 'row', 
-    justifyContent: 'center', 
-    width: '100%',
-    gap: 40
-  },
-  actionButton: { 
-    width: 70, 
-    height: 70, 
-    borderRadius: 35, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: colors.white,
     elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
   },
-  buttonDislike: { 
+  bordaVermelha: {
     borderWidth: 2,
-    borderColor: colors.danger 
+    borderColor: '#FF3B30',
   },
-  buttonLike: { 
+  bordaVerde: {
     borderWidth: 2,
-    borderColor: colors.success 
-  },
+    borderColor: '#34C759',
+  }
 });

@@ -1,73 +1,75 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet
+} from 'react-native';
 
-const SplashScreen = ({ navigation }) => {
+export default function SplashScreen({ navigation }) {
 
-const handleStart = () => {
-  navigation.navigate('Login');
-};
+  function entrar() {
+    navigation.navigate('Login');
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Receita Fácil</Text>
-          <Text style={styles.subtitle}>Descubra novos sabores</Text>
-        </View>
+    <View style={styles.container}>
 
-        <TouchableOpacity style={styles.button} onPress={handleStart}>
-          <Text style={styles.buttonText}>Iniciar</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <Text style={styles.titulo}>
+        Receita Fácil
+      </Text>
+
+      <Text style={styles.subtitulo}>
+        Descubra novas receitas
+      </Text>
+
+      <TouchableOpacity
+        style={styles.botao}
+        onPress={entrar}
+      >
+        <Text style={styles.textoBotao}>
+          Entrar
+        </Text>
+      </TouchableOpacity>
+
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#fff',
     justifyContent: 'center',
-  },
-  content: {
-    paddingHorizontal: 24,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    flex: 1,
   },
-  header: {
-    alignItems: 'center',
-    marginTop: 120,
+
+  titulo: {
+    fontSize: 35,
+    color: 'orange',
+    fontWeight: 'bold',
   },
-  title: {
-    fontSize: 38,
-    fontWeight: '800',
-    color: '#FF7F24',
-    marginBottom: 10,
-  },
-  subtitle: {
+
+  subtitulo: {
     fontSize: 16,
-    color: '#FDBE34',
-    fontWeight: '500',
+    marginTop: 10,
+    color: 'gray',
   },
-  button: {
-    backgroundColor: '#FF7F24',
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 60,
+
+  botao: {
+    backgroundColor: 'orange',
+    marginTop: 50,
+    padding: 15,
+    borderRadius: 10,
+    width: 200,
     alignItems: 'center',
-    marginBottom: 80,
-    shadowColor: '#FDBE34',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
   },
-  buttonText: {
-    color: '#FFFFFF',
+
+  textoBotao: {
+    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
-});
 
-export default SplashScreen;
+});

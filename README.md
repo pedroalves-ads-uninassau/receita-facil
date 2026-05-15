@@ -64,47 +64,97 @@ Os scripts completos de inicialização, criação das tabelas, e popularizaçã
 
 ---
 
-## 📱 Como Executar e Testar no Celular (iPhone e Android) - Guia Passo a Passo para Iniciantes
+## 📱 Como Executar e Testar
 
-Se você é novo no projeto ou não tem muita experiência com programação, não se preocupe! Siga este guia detalhado, feito passo a passo, para conseguir rodar tudo no seu próprio celular.
+### Passo 1: O Banco de Dados (O Cofre)
+1. Abra o seu **XAMPP**, ligue o Apache e depois o **MySQL**. Em seguida, aperte em "Admin" na linha do MySQL.
 
-### Passo 1: Preparando o Banco de Dados (MySQL)
-Para o aplicativo funcionar, ele precisa de um lugar para guardar os dados (o banco de dados).
-1. Certifique-se de que você tem o **MySQL** instalado e rodando no seu computador (pode ser via XAMPP, MySQL Workbench, DBeaver, etc).
-2. Pegue o arquivo com os "Scripts SQL" (que está no documento do projeto ou na pasta `database`) e rode no seu MySQL. Esse script vai criar o banco de dados chamado `receita_facil` e todas as tabelas necessárias.
-3. **Atenção:** Se o seu MySQL tiver uma senha diferente do padrão, você precisa avisar o Java! Para isso, vá no código do Backend, procure a pasta `src/main/resources` e abra o arquivo `application.properties`. Lá, altere o usuário e senha para os do seu computador.
+2. Abra o navegador e acesse `http://localhost/phpmyadmin`.
 
-### Passo 2: Rodando o Backend (O "Cérebro" em Java)
-O Backend é quem vai conversar com o Banco de Dados e enviar as receitas para o celular.
-1. Abra a pasta `backend` no seu editor de código favorito (recomendamos o **IntelliJ IDEA**, **Eclipse** ou **VS Code** com extensão para Java).
-2. Encontre o arquivo principal do projeto: `ReceitaFacilApplication.java` (ele fica dentro da pasta `src/main/java/...`).
-3. Clique com o botão direito nele e escolha **"Run"** (ou "Executar").
-4. Olhe para a telinha preta/branca que aparece embaixo no seu editor (o Terminal/Console). Se não aparecerem erros vermelhos e você ler algo como *"Started ReceitaFacilApplication"* e *"Tomcat started on port 8080"*, **parabéns!** Seu servidor Java está rodando perfeitamente.
+3. Vá na aba **"Importar"**, selecione o arquivo `database/receita_facil.sql` e aperte em **Executar** no final da página.
+ 
+   *(Se você já fez isso uma vez e deu tela verde, o banco está pronto).*
 
-### Passo 3: Configurando o Frontend (O Aplicativo React Native)
-Agora vamos preparar o aplicativo que vai aparecer na tela do seu celular.
-1. O celular precisa conseguir "enxergar" o seu computador pelo Wi-Fi. Por isso, garanta que o seu celular (seja iPhone ou Android) e o seu computador estejam **conectados na mesma rede Wi-Fi**.
-2. O aplicativo precisa saber o número de identificação (IP) do seu computador na rede. Nós já configuramos isso! O arquivo `frontend/src/services/api.js` está apontando para `http://192.168.100.125:8080` (que é o IP de quem configurou o projeto). **Importante:** Se você estiver rodando no *seu* computador, você precisará descobrir o seu próprio IP (abrindo o CMD do Windows e digitando `ipconfig`) e trocar esse número lá no arquivo `api.js`!
-3. Agora, abra o terminal (pode ser o prompt de comando do Windows ou o terminal do VS Code) e navegue até a pasta `frontend`.
-4. Digite `npm install` e aperte Enter. Isso vai baixar todas as bibliotecas que o aplicativo precisa para existir (só precisa fazer isso na primeira vez).
-5. Depois que terminar de instalar tudo, digite `npx expo start` e aperte Enter. Um **QR Code gigante** vai aparecer na sua tela. Não feche essa tela!
+### Passo 2: Dentro da pasta Receita Fácil no VS Code, Ligar o Java (Backend)
+1. Abra o seu terminal e entre na pasta do backend:
+   
+   cd backend
+ 
+2. Digite o comando para ligar o servidor Java:
+   
+   ./mvnw spring-boot:run
 
-### Passo 4: O Teste Final no Celular (A Mágica!)
-Agora vamos colocar o aplicativo na sua mão.
+3. Espere uns 15 segundos. Se nas últimas linhas do texto aparecer `Tomcat started on port 8080`, **Sucesso!** O Java ligou.
 
-**Se você usa iPhone (iOS):**
-1. Vá na App Store do seu iPhone e baixe o aplicativo gratuito chamado **Expo Go**.
-2. Abra o aplicativo de **Câmera normal** do seu iPhone e aponte para o QR Code gigante na tela do computador.
-3. Uma notificação amarela vai aparecer no topo da tela do celular dizendo "Open in Expo Go" (Abrir no Expo Go). Toque nela!
 
-**Se você usa Android:**
-1. Vá na Google Play Store e baixe o aplicativo gratuito chamado **Expo Go**.
-2. Abra o próprio aplicativo do **Expo Go** que você acabou de baixar.
-3. Na tela principal dele, toque no botão **"Scan QR Code"** (Escanear código QR).
-4. Aponte a câmera para o QR Code gigante na tela do computador.
+### Passo 3: Ligar o Celular (Frontend)
+1. Abra **outra janela** de terminal (já que a do Java tem que ficar rodando).
 
-**O que acontece agora?**
-O celular vai carregar uma barrinha de progresso ("Bundling..."). Quando terminar, o aplicativo **Receita Fácil** vai abrir direto no seu celular! Você poderá navegar pelas telas, favoritar itens e ver as receitas. Como você está usando o IP correto da sua rede Wi-Fi, o celular vai pedir os dados para o seu computador, o seu computador vai pedir para o banco de dados, e a resposta voltará para a palma da sua mão! 🎉
+2. Entre na pasta do frontend:
+
+   cd frontend
+
+3. Digite o comando para ligar o aplicativo no modo túnel (que dribla bloqueios de Wi-Fi e Firewall) e limpa o cache:
+   
+   npx expo start --tunnel --clear
+
+4. O terminal vai perguntar se você quer logar. Pressione a **Seta para Baixo** no teclado para selecionar `Proceed Anonymously` e aperte **Enter**.
+
+5. Um QR Code gigante vai aparecer na tela.
+
+### Passo 4: Escolha como quer Testar
+
+**Opção A: No Computador (Mais Rápido)**
+* No mesmo terminal onde está o QR Code, aperte a letra **`w`** no seu teclado.
+
+
+**Opção B: No Celular (O Teste Real)**
+* Pegue seu iPhone ou Android e abra o aplicativo **Expo Go**.
+* Use a câmera (ou o botão Scan do Android) para ler o QR Code na tela do PC.
+
+---
+
+## 🧪 Como Testar a API (Endpoints de Usuários)
+
+Para testar o backend localmente, você pode utilizar o **Postman** ou o **Insomnia**. Certifique-se de que o servidor Spring Boot está rodando (`http://localhost:8080`).
+
+### 1. Listar Usuários (GET)
+Retorna a lista de todos os usuários cadastrados.
+- **Método:** `GET`
+- **URL:** `http://localhost:8080/usuarios`
+- **Body:** *(Não necessário)*
+
+### 2. Criar Usuário (POST)
+Cria um novo usuário no banco de dados.
+- **Método:** `POST`
+- **URL:** `http://localhost:8080/usuarios`
+- **Body (JSON):**
+
+{
+  "nome": "João Silva",
+  "email": "joao@email.com",
+  "senha": "senha123"
+}
+
+
+### 3. Atualizar Usuário (PUT)
+Atualiza os dados de um usuário específico pelo seu ID.
+- **Método:** `PUT`
+- **URL:** `http://localhost:8080/usuarios/{id}` *(Exemplo: /usuarios/2)*
+- **Body (JSON):**
+
+{
+  "nome": "João Silva Alterado",
+  "email": "joao@email.com",
+  "senha": "nova_senha_456"
+}
+
+
+### 4. Deletar Usuário (DELETE)
+Exclui permanentemente um usuário do sistema.
+- **Método:** `DELETE`
+- **URL:** `http://localhost:8080/usuarios/{id}` *(Exemplo: /usuarios/2)*
+- **Body:** *(Não necessário)*
 
 ---
 
