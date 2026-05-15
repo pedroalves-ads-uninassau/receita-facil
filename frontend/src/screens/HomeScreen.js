@@ -1,3 +1,4 @@
+import { useAreaInsets } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,6 +7,7 @@ import { getReceitas } from '../services/api';
 const { width, height } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [receitas, setReceitas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [indiceAtual, setIndiceAtual] = useState(0);
@@ -94,7 +96,12 @@ export default function HomeScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* Botões do "Tinder" de Receitas */}
-      <View style={styles.areaBotoes}>
+        <View
+         style ={[
+           styles.actions,
+         { marginBottom: insets.bottom + 10 }
+           ]}
+        >   
         <TouchableOpacity style={[styles.botaoCirculo, styles.bordaVermelha]} onPress={proximaReceita}>
           <Ionicons name="close" size={40} color="#FF3B30" />
         </TouchableOpacity>
