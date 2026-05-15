@@ -100,6 +100,16 @@ Os scripts completos de inicialização, criação das tabelas, e popularizaçã
 
 4. O terminal vai perguntar se você quer logar. Pressione a **Seta para Baixo** no teclado para selecionar `Proceed Anonymously` e aperte **Enter**.
 
+### ⚠️ Dica Crucial: Conectando o Celular ao Backend
+Se você for testar no **celular físico (Expo Go)**, o `localhost` não vai funcionar. Você precisa trocar o endereço no código para o **IP da sua máquina**.
+4.1.  **Descubra seu IP**: No terminal do seu PC, digite `ipconfig`.
+4.2.  Procure por **"Endereço IPv4"** (exemplo: `192.168.1.15`).
+4.3.  **Troque no Código**: Abra o arquivo `frontend/src/services/api.js` e altere a linha:
+   
+    const BASE_URL = 'http://192.168.1.15:8080'; // Coloque o SEU IP aqui
+   
+4.4.  **Importante**: O celular e o computador devem estar na **mesma rede Wi-Fi**.
+
 5. Um QR Code gigante vai aparecer na tela.
 
 ### Passo 4: Escolha como quer Testar
