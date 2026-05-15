@@ -1,12 +1,14 @@
 package br.com.receitafacil.backend.service;
 
-import br.com.receitafacil.backend.entity.Receita;
-import br.com.receitafacil.backend.repository.ReceitaRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import br.com.receitafacil.backend.entity.Receita;
+import br.com.receitafacil.backend.repository.ReceitaRepository;
 
+@SuppressWarnings("null")
 @Service
 public class ReceitaService {
 
@@ -15,6 +17,10 @@ public class ReceitaService {
 
     public List<Receita> listarTodas() {
         return repository.findAll();
+    }
+
+    public List<Receita> buscarPorTitulo(String titulo) {
+        return repository.findByTituloContainingIgnoreCase(titulo);
     }
 
     public Receita salvar(Receita receita) {

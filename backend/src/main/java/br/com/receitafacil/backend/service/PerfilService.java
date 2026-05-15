@@ -19,6 +19,7 @@ public class PerfilService {
         return repository.findAll();
     }
 
+    @SuppressWarnings("null")
     public Perfil salvar(Perfil perfil) {
         return repository.save(perfil);
     }

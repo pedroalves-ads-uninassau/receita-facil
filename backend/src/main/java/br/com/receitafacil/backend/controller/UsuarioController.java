@@ -13,7 +13,12 @@ import java.util.List;
 public class UsuarioController {
 
     @Autowired
-    private UsuarioService service; // Agora o Java sabe quem é o "service"
+    private UsuarioService service;
+
+    @PostMapping("/login")
+    public Usuario login(@RequestBody Usuario usuario) {
+        return service.login(usuario);
+    }
 
     @GetMapping
     public List<Usuario> listar() {

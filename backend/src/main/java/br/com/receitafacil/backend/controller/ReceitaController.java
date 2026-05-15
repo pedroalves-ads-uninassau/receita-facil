@@ -1,11 +1,20 @@
 package br.com.receitafacil.backend.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import br.com.receitafacil.backend.entity.Receita;
 import br.com.receitafacil.backend.service.ReceitaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/receitas")
@@ -18,6 +27,11 @@ public class ReceitaController {
     @GetMapping
     public List<Receita> listar() {
         return service.listarTodas();
+    }
+
+    @GetMapping("/busca/{titulo}")
+    public List<Receita> buscar(@PathVariable String titulo) {
+        return service.buscarPorTitulo(titulo);
     }
 
     @PostMapping
