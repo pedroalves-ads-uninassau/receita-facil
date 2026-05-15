@@ -34,6 +34,11 @@ public class ReceitaController {
         return service.buscarPorTitulo(titulo);
     }
 
+    @GetMapping("/{id}")
+    public Receita buscarPorId(@PathVariable Long id) {
+        return service.buscarPorId(id);
+    }
+
     @PostMapping
     public Receita salvar(@RequestBody Receita receita) {
         return service.salvar(receita);
