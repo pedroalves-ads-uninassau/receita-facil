@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `receita_facil`
 --
+CREATE DATABASE IF NOT EXISTS `receita_facil` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `receita_facil`;
 
 -- --------------------------------------------------------
 

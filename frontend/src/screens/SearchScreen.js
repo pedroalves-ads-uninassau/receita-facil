@@ -1,213 +1,76 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import RecipeCard from '../components/RecipeCard'; // Componente reutilizável!
-import { getReceitas } from '../services/api';
-
-const CATEGORIES = [
-  { id: '1', name: 'Massas', icon: 'pizza-outline', color: colors.secondary },
-  { id: '2', name: 'Saudável', icon: 'leaf-outline', color: colors.success },
-  { id: '3', name: 'Lanches', icon: 'fast-food-outline', color: colors.primary },
-  { id: '4', name: 'Doces', icon: 'ice-cream-outline', color: colors.text },
-];
 
 export default function SearchScreen({ navigation }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [recipes, setRecipes] = useState([]);
-
-  React.useEffect(() => {
-    getReceitas().then(data => setRecipes(data));
-  }, []);
-
-  // Lógica de navegação para tela de detalhe passando a receita
-  const goToDetail = (recipe) => {
-    navigation.navigate('RecipeDetail', { recipe });
-  };
-
   return (
     <View style={styles.container}>
-      
-      {/* Cabeçalho da Busca Focado em Receitas */}
-      <View style={styles.searchHeader}>
-        <View style={styles.searchBarContainer}>
-          <Ionicons name="search" size={20} color={colors.primary} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Qual receita você deseja hoje?..."
-            placeholderTextColor={colors.textLight}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
+      <TouchableOpacity style={styles.botaoVoltarTopo} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="#23374C" />
+      </TouchableOpacity>
 
-        {searchQuery.length > 0 && recipes.length >= 2 && (
-          <View style={styles.searchDropdown}>
-            <Text style={styles.searchTitle}>Sugestões de pratos</Text>
-            <TouchableOpacity style={styles.searchItemRow} onPress={() => goToDetail(recipes[1])}>
-              <Ionicons name="restaurant-outline" size={16} color={colors.textLight} />
-              <Text style={styles.searchItemText}>{searchQuery} de forno</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.searchItemRow} onPress={() => goToDetail(recipes[0])}>
-              <Ionicons name="restaurant-outline" size={16} color={colors.textLight} />
-              <Text style={styles.searchItemText}>{searchQuery} caseiro</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
+        <Ionicons name="search-outline" size={80} color="#FF7F24" />
+        <Text style={styles.titulo}>Busca</Text>
+        <Text style={styles.aviso}>Em Construção</Text>
+        <Text style={styles.subaviso}>Em breve você poderá buscar receitas por ingredientes aqui.</Text>
         
-        <View style={styles.promoBanner}>
-          <View>
-            <Text style={styles.promoTitle}>Receitas de Inverno</Text>
-            <Text style={styles.promoSubtitle}>Descubra pratos quentes</Text>
-          </View>
-          <Ionicons name="snow-outline" size={40} color={colors.white} opacity={0.8} />
-        </View>
-
-        <Text style={styles.sectionTitle}>Categorias</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
-          {CATEGORIES.map(cat => (
-            <TouchableOpacity key={cat.id} style={styles.categoryCard}>
-              <View style={[styles.categoryIconBg, { backgroundColor: cat.color }]}>
-                <Ionicons name={cat.icon} size={28} color={colors.white} />
-              </View>
-              <Text style={styles.categoryName}>{cat.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.sectionTitle}>Em Alta</Text>
-        <View style={styles.suggestionsContainer}>
-          {/* USANDO O COMPONENTE REUTILIZÁVEL E PASSANDO O PARÂMETRO DA NAVEGAÇÃO! */}
-          {recipes.map(item => (
-            <RecipeCard 
-              key={item.id} 
-              recipe={item} 
-              onPress={() => goToDetail(item)} 
-            />
-          ))}
-        </View>
-      </ScrollView>
+        <TouchableOpacity style={styles.botao} onPress={() => navigation.goBack()}>
+          <Text style={styles.textoBotao}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.background
-  },
-  searchHeader: { 
-    padding: 20, 
-    paddingTop: 50,
-    backgroundColor: colors.white, 
-    borderBottomLeftRadius: 24, 
-    borderBottomRightRadius: 24,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    zIndex: 10,
-  },
-  searchBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#EFEFEF',
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: { 
+  container: {
     flex: 1,
-    paddingVertical: 14, 
-    fontSize: 16,
-    color: colors.text
+    backgroundColor: '#FFF8E7',
   },
-  searchDropdown: { 
-    backgroundColor: colors.white, 
-    marginTop: 12, 
-    borderRadius: 12, 
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
+  botaoVoltarTopo: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    zIndex: 1,
   },
-  searchTitle: { 
-    fontWeight: 'bold', 
-    color: colors.text, 
-    marginBottom: 12,
-    fontSize: 14,
-    textTransform: 'uppercase',
-  },
-  searchItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0'
-  },
-  searchItemText: { 
-    color: '#666',
-    fontSize: 16,
-    marginLeft: 10
-  },
-  content: { 
-    padding: 20 
-  },
-  promoBanner: {
-    backgroundColor: colors.text, 
-    borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  promoTitle: {
-    color: colors.secondary, 
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  promoSubtitle: {
-    color: colors.white,
-    fontSize: 14,
-  },
-  sectionTitle: { 
-    fontSize: 20, 
-    fontWeight: '800', 
-    color: colors.text, 
-    marginBottom: 16 
-  },
-  categoryScroll: {
-    marginBottom: 24,
-  },
-  categoryCard: { 
-    alignItems: 'center', 
-    marginRight: 20,
-  },
-  categoryIconBg: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
-    elevation: 3,
-    shadowColor: '#000',
+    padding: 30,
   },
-  categoryName: { 
-    fontWeight: '600', 
-    color: colors.text,
-    fontSize: 14
+  titulo: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#23374C',
+    marginTop: 20,
   },
-  suggestionsContainer: {
-    paddingBottom: 40,
+  aviso: {
+    fontSize: 20,
+    color: '#FF7F24',
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  subaviso: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 40,
+  },
+  botao: {
+    backgroundColor: '#FF7F24',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+  },
+  textoBotao: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   }
 });

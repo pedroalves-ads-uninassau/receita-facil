@@ -1,190 +1,161 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const LoginScreen = ({ navigation }) => {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [senha, setSenha] = useState('');
 
-  const handleLogin = () => {
-    // Simulação do sucesso de login: leva para a Home avisando que agora está logado
-    navigation.navigate('Home', {
-      screen: 'ProfileTab',
-      params: { loggedIn: true }
-    });
-  };
+  function entrar() {
+    navigation.navigate('Home');
+  }
+
+  function irParaCadastro() {
+    navigation.navigate('Register');
+  }
+
+  function irParaRecuperarSenha() {
+    navigation.navigate('ForgotPassword');
+  }
 
   return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView behavior="height" style={styles.innerContainer}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.header}>
+        <View style={styles.logoCircle}>
+          <Ionicons name="restaurant" size={50} color="#FFF" />
+        </View>
+        <Text style={styles.titulo}>Receita Fácil</Text>
+        <Text style={styles.subtitulo}>Bem-vindo de volta!</Text>
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.inputBox}>
+          <Ionicons name="mail-outline" size={20} color="#888" style={styles.icon} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Seu email" 
+            placeholderTextColor="#999"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
         
-        <View style={styles.header}>
-          <View style={styles.logoCircle}>
-            <Ionicons name="restaurant" size={40} color="#FFF" />
-          </View>
-          <Text style={styles.title}>Receita Fácil</Text>
-          <Text style={styles.subtitle}>Encontre seu próximo prato favorito</Text>
+        <View style={styles.inputBox}>
+          <Ionicons name="lock-closed-outline" size={20} color="#888" style={styles.icon} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="Sua senha" 
+            placeholderTextColor="#999"
+            secureTextEntry={true}
+            value={senha}
+            onChangeText={setSenha}
+          />
         </View>
 
-        <View style={styles.formCard}>
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#888" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="E-mail"
-              placeholderTextColor="#888"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
+        <TouchableOpacity style={styles.areaEsqueci} onPress={irParaRecuperarSenha}>
+          <Text style={styles.textoEsqueci}>Esqueci minha senha</Text>
+        </TouchableOpacity>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#888" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Senha"
-              placeholderTextColor="#888"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#888" />
-            </TouchableOpacity>
-          </View>
-          
-          <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate('ForgotPassword')}>
-            <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.botao} onPress={entrar}>
+          <Text style={styles.textoBotao}>Entrar</Text>
+        </TouchableOpacity>
+      </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin} activeOpacity={0.8}>
-            <Text style={styles.buttonText}>Entrar</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>Ainda não tem conta? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.signupLink}>Criar agora</Text>
-          </TouchableOpacity>
-        </View>
-
-      </KeyboardAvoidingView>
-    </View>
+      <TouchableOpacity style={styles.areaCadastro} onPress={irParaCadastro}>
+        <Text style={styles.textoCadastro}>Não tem conta? <Text style={styles.textoDestaque}>Criar agora</Text></Text>
+      </TouchableOpacity>
+    </KeyboardAvoidingView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E7', // Creme fundo
-  },
-  innerContainer: {
-    flex: 1,
+    backgroundColor: '#FFF8E7', // Cor de fundo suave (creme)
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    padding: 24,
   },
   header: {
     alignItems: 'center',
     marginBottom: 40,
   },
   logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FF7F24', // Laranja
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#FF7F24', // Laranja Receita Fácil
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#FF7F24',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    elevation: 5, // Sombra
   },
-  title: {
+  titulo: {
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: 'bold',
     color: '#23374C', // Azul marinho
-    marginBottom: 6,
   },
-  subtitle: {
+  subtitulo: {
     fontSize: 16,
     color: '#666',
+    marginTop: 5,
   },
-  formCard: {
+  card: {
     backgroundColor: '#FFF',
-    padding: 24,
-    borderRadius: 24,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    padding: 20,
+    borderRadius: 20,
+    elevation: 3, // Sombrinha
   },
-  inputContainer: {
+  inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
+    marginBottom: 15,
+    paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    marginBottom: 16,
-    paddingHorizontal: 14,
+    borderColor: '#EAEAEA',
   },
-  inputIcon: {
+  icon: {
     marginRight: 10,
-  },
-  eyeIcon: {
-    padding: 10,
   },
   input: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 15,
     fontSize: 16,
-    color: '#23374C',
+    color: '#333',
   },
-  forgotPassword: {
+  areaEsqueci: {
     alignItems: 'flex-end',
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  forgotPasswordText: {
+  textoEsqueci: {
     color: '#23374C',
-    fontSize: 14,
-    fontWeight: '700',
+    fontWeight: 'bold',
   },
-  button: {
+  botao: {
     backgroundColor: '#FF7F24',
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: 'center',
-    elevation: 2,
   },
-  buttonText: {
+  textoBotao: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    letterSpacing: 0.5,
   },
-  signupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 32,
+  areaCadastro: {
+    marginTop: 30,
+    alignItems: 'center',
   },
-  signupText: {
+  textoCadastro: {
+    fontSize: 15,
     color: '#666',
-    fontSize: 15,
   },
-  signupLink: {
-    color: '#3DAE60', // Verde
-    fontSize: 15,
+  textoDestaque: {
+    color: '#FF7F24',
     fontWeight: 'bold',
-  },
+  }
 });
-
-export default LoginScreen;
