@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { RECIPES_MOCK } from '../mocks/recipes';
 import RecipeCard from '../components/RecipeCard'; // Componente reutilizável!
+import { getReceitas } from '../services/api';
 
 const CATEGORIES = [
   { id: '1', name: 'Massas', icon: 'pizza-outline', color: colors.secondary },
@@ -14,6 +14,11 @@ const CATEGORIES = [
 
 export default function SearchScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [recipes, setRecipes] = useState([]);
+
+  React.useEffect(() => {
+    getReceitas().then(data => setRecipes(data));
+  }, []);
 
   // Lógica de navegação para tela de detalhe passando a receita
   const goToDetail = (recipe) => {
@@ -36,14 +41,14 @@ export default function SearchScreen({ navigation }) {
           />
         </View>
 
-        {searchQuery.length > 0 && (
+        {searchQuery.length > 0 && recipes.length >= 2 && (
           <View style={styles.searchDropdown}>
             <Text style={styles.searchTitle}>Sugestões de pratos</Text>
-            <TouchableOpacity style={styles.searchItemRow} onPress={() => goToDetail(RECIPES_MOCK[1])}>
+            <TouchableOpacity style={styles.searchItemRow} onPress={() => goToDetail(recipes[1])}>
               <Ionicons name="restaurant-outline" size={16} color={colors.textLight} />
               <Text style={styles.searchItemText}>{searchQuery} de forno</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.searchItemRow} onPress={() => goToDetail(RECIPES_MOCK[0])}>
+            <TouchableOpacity style={styles.searchItemRow} onPress={() => goToDetail(recipes[0])}>
               <Ionicons name="restaurant-outline" size={16} color={colors.textLight} />
               <Text style={styles.searchItemText}>{searchQuery} caseiro</Text>
             </TouchableOpacity>
@@ -76,7 +81,7 @@ export default function SearchScreen({ navigation }) {
         <Text style={styles.sectionTitle}>Em Alta</Text>
         <View style={styles.suggestionsContainer}>
           {/* USANDO O COMPONENTE REUTILIZÁVEL E PASSANDO O PARÂMETRO DA NAVEGAÇÃO! */}
-          {RECIPES_MOCK.map(item => (
+          {recipes.map(item => (
             <RecipeCard 
               key={item.id} 
               recipe={item} 

@@ -2,13 +2,22 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { RECIPES_MOCK } from '../mocks/recipes';
 import RecipeCard from '../components/RecipeCard'; // Usando o componente global
+import { getReceitas } from '../services/api';
 
 export default function FavoritesScreen({ navigation }) {
-  
-  // Supondo que o usuário tenha favoritado as duas primeiras
-  const FAVORITES = [RECIPES_MOCK[1], RECIPES_MOCK[0]];
+  const [favorites, setFavorites] = React.useState([]);
+
+  React.useEffect(() => {
+    // Simulação: carregamos as receitas da API e pegamos as duas primeiras como favoritos falsos para demonstrar
+    getReceitas().then(data => {
+      if (data && data.length >= 2) {
+        setFavorites([data[0], data[1]]);
+      } else {
+        setFavorites(data);
+      }
+    });
+  }, []);
 
   const goToDetail = (recipe) => {
     navigation.navigate('RecipeDetail', { recipe });
@@ -27,7 +36,7 @@ export default function FavoritesScreen({ navigation }) {
       <Text style={styles.subtitle}>Sua biblioteca de pratos perfeitos.</Text>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {FAVORITES.map(item => (
+        {favorites.map(item => (
           <RecipeCard 
             key={item.id} 
             recipe={item} 

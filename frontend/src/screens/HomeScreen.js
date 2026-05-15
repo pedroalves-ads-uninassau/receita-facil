@@ -1,27 +1,49 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { RECIPES_MOCK } from '../mocks/recipes';
+import { getReceitas } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadRecipes();
+  }, []);
+
+  const loadRecipes = async () => {
+    setLoading(true);
+    const data = await getReceitas();
+    setRecipes(data);
+    setLoading(false);
+  };
 
   const goToDetail = (recipe) => {
     navigation.navigate('RecipeDetail', { recipe });
   };
 
   const handleSwipe = (direction) => {
-    if (currentIndex < RECIPES_MOCK.length - 1) {
+    if (currentIndex < recipes.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
       alert('Você chegou ao fim das receitas de hoje!');
     }
   };
 
-  const recipe = RECIPES_MOCK[currentIndex];
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{marginTop: 10, color: colors.textLight}}>Buscando receitas fresquinhas...</Text>
+      </View>
+    );
+  }
+
+  const recipe = recipes[currentIndex];
 
   if (!recipe) {
     return (
