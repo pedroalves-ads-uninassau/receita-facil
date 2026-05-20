@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "react-native-deck-swiper": "^2.0.19"
+  }
+}
