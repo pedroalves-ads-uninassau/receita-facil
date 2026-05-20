@@ -2,6 +2,7 @@ import { useAreaInsets } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Swiper from 'react-native-deck-swiper';
 import { getReceitas } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -67,33 +68,67 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Card Gigante (Estilo Swipe) */}
-      <TouchableOpacity activeOpacity={0.9} style={styles.cardGigante} onPress={verDetalhes}>
-        <Image 
-          source={{ uri: receitaAtiva.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80' }} 
+<Swiper
+  cards={receitas}
+  cardIndex={indiceAtual}
+  renderCard={(receita) => {
+    if (!receita) return null;
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={styles.cardGigante}
+        onPress={verDetalhes}
+      >
+        <Image
+          source={{
+            uri:
+              receita.image ||
+              'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+          }}
           style={styles.imagemReceita}
         />
-        
+
         {/* Etiqueta flutuante de categoria */}
         <View style={styles.etiquetaCategoria}>
-          <Text style={styles.textoEtiqueta}>{receitaAtiva.categoria || 'Geral'}</Text>
+          <Text style={styles.textoEtiqueta}>
+            {receita.categoria || 'Geral'}
+          </Text>
         </View>
 
         <View style={styles.infoReceita}>
-          <Text style={styles.tituloReceita}>{receitaAtiva.titulo}</Text>
-          
+          <Text style={styles.tituloReceita}>
+            {receita.titulo}
+          </Text>
+
           <View style={styles.tagsArea}>
             <View style={styles.tag}>
               <Ionicons name="time-outline" size={18} color="#666" />
-              <Text style={styles.textoTag}>{receitaAtiva.tempo_preparo || 15} min</Text>
+              <Text style={styles.textoTag}>
+                {receita.tempo_preparo || 15} min
+              </Text>
             </View>
+
             <Text style={styles.bolinha}>•</Text>
+
             <View style={styles.tag}>
               <Ionicons name="person-outline" size={18} color="#666" />
-              <Text style={styles.textoTag}>Chef {receitaAtiva.usuario_id || 1}</Text>
+              <Text style={styles.textoTag}>
+                Chef {receita.usuario_id || 1}
+              </Text>
             </View>
           </View>
         </View>
       </TouchableOpacity>
+    );
+  }}
+  onSwipedLeft={proximaReceita}
+  onSwipedRight={proximaReceita}
+  backgroundColor="transparent"
+  stackSize={3}
+  verticalSwipe={false}
+  animateCardOpacity
+/>
 
       {/* Botões do "Tinder" de Receitas */}
         <View

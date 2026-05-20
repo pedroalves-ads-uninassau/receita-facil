@@ -3,7 +3,7 @@
 import { Platform } from 'react-native';
 
 // Usar localhost para testar no computador. Se for testar no celular físico, coloque o IP do seu Wi-Fi.
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'http://10.100.2.32';
 
 export const getReceitas = async () => {
     try {
