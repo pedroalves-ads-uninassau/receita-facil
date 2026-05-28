@@ -1,13 +1,13 @@
 package br.com.receitafacil.backend.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Entity
-@Table(name = "imagens")
-@Data
+import jakarta.persistence.*;
+import lombok.Data;
 
+@Entity
+@Table(name = "Imagem")
+@Data
 public class Imagem {
 
     @Id
