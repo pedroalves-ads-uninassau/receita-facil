@@ -4,18 +4,19 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
+@Table(name = "Perfil")
 @Data
 public class Perfil {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    private String nome;
-    
+
+    private String especialidade;
+
     @Column(length = 2000)
     private String descricao;
-    private String foto_perfil;
-    
+
     @OneToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;

@@ -19,28 +19,29 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "receitas")
+@Table(name = "Receitas")
 @Data
 public class Receita {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String titulo;
-    
+
     @Column(name = "passo_a_passo", columnDefinition = "TEXT")
     private String passoAPasso;
-    
+
     @Column(name = "tempo_preparo")
     private Integer tempoPreparo;
-    
+
     @Column(columnDefinition = "TEXT")
     private String ingredientes;
-    
+
     @ManyToOne
     @JoinColumn(name = "usuario_id", insertable = false, updatable = false)
     private Usuario autor;
-    
+
     @Column(name = "usuario_id")
     private Long usuarioId;
 
@@ -48,8 +49,9 @@ public class Receita {
     private List<Imagem> imagens;
 
     @ManyToMany
-    @JoinTable(name = "receita_categoria", 
-        joinColumns = @JoinColumn(name = "receita_id"), 
+    @JoinTable(
+        name = "Pertence",
+        joinColumns = @JoinColumn(name = "receita_id"),
         inverseJoinColumns = @JoinColumn(name = "categoria_id")
     )
     private List<Categoria> categorias;

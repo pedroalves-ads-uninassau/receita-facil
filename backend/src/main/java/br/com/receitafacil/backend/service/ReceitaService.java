@@ -24,13 +24,21 @@ public class ReceitaService {
         return repository.findByTituloContainingIgnoreCase(titulo);
     }
 
+    public List<Receita> buscarPorUsuario(Long usuarioId) {
+        return repository.findByUsuarioId(usuarioId);
+    }
+
+    public List<Receita> buscarPorCategoria(Long categoriaId) {
+        return repository.findByCategorias_Id(categoriaId);
+    }
+
     public Receita salvar(Receita receita) {
         return repository.save(receita);
     }
 
     public Receita buscarPorId(Long id) {
         return repository.findById(id)
-        .orElseThrow(() -> new ReceitaNotFoundException("Receita não encontrada"));
+            .orElseThrow(() -> new ReceitaNotFoundException("Receita não encontrada"));
     }
 
     public void excluir(Long id) {

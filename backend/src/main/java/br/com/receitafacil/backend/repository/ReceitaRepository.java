@@ -11,5 +11,9 @@ import br.com.receitafacil.backend.entity.Receita;
 public interface ReceitaRepository extends JpaRepository<Receita, Long> {
 
     List<Receita> findByTituloContainingIgnoreCase(String titulo);
-    
+
+    List<Receita> findByUsuarioId(Long usuarioId);
+
+    List<Receita> findByCategorias_Id(Long categoriaId);
+
 }
