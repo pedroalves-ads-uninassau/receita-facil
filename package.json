@@ -1,5 +1,10 @@
 {
   "dependencies": {
     "react-native-deck-swiper": "^2.0.19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "@types/react-native": "^0.72.8",
+    "typescript": "^6.0.3"
   }
 }
