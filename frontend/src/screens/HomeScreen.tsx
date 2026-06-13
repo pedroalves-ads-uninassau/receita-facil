@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Swiper from 'react-native-deck-swiper';
-import { getReceitas } from '../services/api';
+import api from '../services/api';
 
 interface Receita {
   id?: number;
   titulo: string;
-  image?: string;
+  imagens?: {
+    url: string;
+  }[];
   categoria?: string;
   tempo_preparo?: number;
   usuario_id?: number;
@@ -21,6 +23,20 @@ export default function HomeScreen({ navigation }: any) {
   const [carregando, setCarregando] = useState<boolean>(true);
   const [indiceAtual, setIndiceAtual] = useState<number>(0);
 
+  async function favoritar() {
+  const receita = receitas[indiceAtual];
+
+  if (!receita?.id) return;
+
+  try {
+    await fetch(`http://localhost:8080/receitas/${receita.id}/favoritar`, {
+      method: 'POST',
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
   // Busca no backend quando a tela abre
   useEffect(() => {
     carregarDoBanco();
@@ -29,7 +45,7 @@ export default function HomeScreen({ navigation }: any) {
   async function carregarDoBanco() {
     try {
       setCarregando(true);
-      const data = await getReceitas();
+      const data = await api.getReceitas();
       setReceitas(data);
     } catch (error) {
       console.log("Erro ao buscar receitas:", error);
@@ -40,6 +56,19 @@ export default function HomeScreen({ navigation }: any) {
 
   // Função que passa para a próxima receita quando clica nos botões (X ou Coração)
   function proximaReceita() {
+    async function favoritar() {
+  const receita = receitas[indiceAtual];
+
+  if (!receita?.id) return;
+
+  try {
+    await fetch(`http://localhost:8080/receitas/${receita.id}/favoritar`, {
+  method: 'POST',
+});
+  } catch (error) {
+    console.log(error);
+  }
+}
     if (indiceAtual < receitas.length - 1) {
       setIndiceAtual(indiceAtual + 1);
     } else {
@@ -91,8 +120,8 @@ export default function HomeScreen({ navigation }: any) {
         <Image
           source={{
             uri:
-              receita.image ||
-              'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+             receita.imagens?.[0]?.url ||
+            'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
           }}
           style={styles.imagemReceita}
         />
@@ -149,7 +178,13 @@ export default function HomeScreen({ navigation }: any) {
           <Ionicons name="close" size={40} color="#FF3B30" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.botaoCirculo, styles.bordaVerde]} onPress={proximaReceita}>
+        <TouchableOpacity
+         style={[styles.botaoCirculo, styles.bordaVerde]}
+         onPress={() => {
+               favoritar();
+               proximaReceita();
+              }}
+>
           <Ionicons name="heart" size={40} color="#34C759" />
         </TouchableOpacity>
       </View>

@@ -2,7 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function FavoritesScreen({ navigation }: any) {
+type Props = {
+  navigation: any;
+};
+
+export default function FavoritesScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.botaoVoltarTopo} onPress={() => navigation.goBack()}>
