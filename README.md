@@ -168,6 +168,13 @@ Exclui permanentemente um usuário do sistema.
 
 ---
 
+## 📖 Documentação da API (Swagger)
+
+A documentação interativa da API pode ser acessada através do Swagger UI. Certifique-se de que o backend esteja rodando e acesse:
+- [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+---
+
 ## 👨‍💻 Autores
 
 - **Allan Victor Morais de Lima** - *01813117*
