@@ -1,14 +1,42 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import api from '../services/api';
+
+type Props = {
+  navigation: any;
+};
+
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState<string>('');
   const [senha, setSenha] = useState<string>('');
 
-  function entrar(): void {
-    navigation.navigate('Home');
+  async function entrar(): Promise<void> {
+  try {
+    const response = await fetch('http://localhost:8080', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        senha,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      navigation.navigate('Home');
+    } else {
+      alert(data.mensagem || 'Email ou senha inválidos');
+    }
+  } catch (error) {
+    console.log(error);
+    alert('Erro ao conectar com o servidor');
   }
+}
 
   function irParaCadastro(): void {
     navigation.navigate('Register');

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
+import api from '../services/api';
 
 type Props = {
   navigation: any;
@@ -12,10 +13,28 @@ const [nome, setNome] = useState<string>('');
 const [email, setEmail] = useState<string>('');
 const [senha, setSenha] = useState<string>('');
 
-  function cadastrar() {
-    Alert.alert("Sucesso", "Conta criada com sucesso!");
-    navigation.navigate('Login');
+  async function cadastrar() {
+  if (!nome || !email || !senha) {
+    Alert.alert('Erro', 'Preencha todos os campos');
+    return;
   }
+
+  try {
+    const response = await api.post('/users/register', {
+      nome,
+      email,
+      senha,
+    });
+
+    Alert.alert('Sucesso', 'Conta criada com sucesso!');
+
+    navigation.navigate('Login');
+
+  } catch (error: any) {
+    console.log(error?.response?.data || error.message);
+    Alert.alert('Erro', 'Erro ao criar conta');
+  }
+}
 
   return (
     <KeyboardAvoidingView 

@@ -1,10 +1,14 @@
-const BASE_URL = 'http://10.100.2.32';
+import { Platform } from 'react-native';
+
+// Lembre-se de verificar se a porta do seu backend é a 8080!
+const BASE_URL = 'http://10.100.2.32:8080';
 
 export enum TipoUsuario {
     COMUM = 'COMUM',
     CHEF = 'CHEF',
     ADMIN = 'ADMIN'
 }
+
 export interface Usuario {
     id?: number;
     nome: string;
@@ -15,15 +19,18 @@ export interface Usuario {
     minhasReceitas?: Receita[];
     perfil?: Perfil;
 }
+
 export interface Categoria {
     id?: number;
     nomeCategoria: string;
     receitas?: Receita[];
 }
+
 export interface Imagem {
     id?: number;
     url: string;
 }
+
 export interface Receita {
     id?: number;
     titulo: string;
@@ -35,12 +42,14 @@ export interface Receita {
     imagens?: Imagem[];
     categorias?: Categoria[];
 }
+
 export interface Perfil {
     id?: number;
     especialidade: string;
     descricao: string;
     usuario?: Usuario;
 }
+
 export interface Avaliacao {
     id?: number;
     usuarioId: number;
@@ -48,11 +57,13 @@ export interface Avaliacao {
     nota: number;
     comentario?: string;
 }
+
 export interface FavoritoDTO {
     usuarioId: number;
     receitaId: number;
 }
 
+// Funções da API (Exportações nomeadas da branch main)
 export const login = async (usuario: Partial<Usuario>): Promise<Usuario | null> => {
     try {
         const response = await fetch(`${BASE_URL}/usuarios/login`, {
@@ -67,6 +78,7 @@ export const login = async (usuario: Partial<Usuario>): Promise<Usuario | null> 
         return null;
     }
 };
+
 export const listarUsuarios = async (): Promise<Usuario[]> => {
     try {
         const response = await fetch(`${BASE_URL}/usuarios`);
@@ -77,6 +89,7 @@ export const listarUsuarios = async (): Promise<Usuario[]> => {
         return [];
     }
 };
+
 export const cadastrarUsuario = async (usuario: Usuario): Promise<Usuario | null> => {
     try {
         const response = await fetch(`${BASE_URL}/usuarios`, {
@@ -91,6 +104,7 @@ export const cadastrarUsuario = async (usuario: Usuario): Promise<Usuario | null
         return null;
     }
 };
+
 export const atualizarUsuario = async (id: number, usuario: Usuario): Promise<Usuario | null> => {
     try {
         const response = await fetch(`${BASE_URL}/usuarios/${id}`, {
@@ -105,6 +119,7 @@ export const atualizarUsuario = async (id: number, usuario: Usuario): Promise<Us
         return null;
     }
 };
+
 export const deletarUsuario = async (id: number): Promise<boolean> => {
     try {
         const response = await fetch(`${BASE_URL}/usuarios/${id}`, {
@@ -124,10 +139,11 @@ export const getReceitas = async (): Promise<Receita[]> => {
         if (!response.ok) throw new Error('Falha ao obter receitas');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao buscar receitas do backend:', error);
+        console.error('Erro ao buscar receitas:', error);
         return [];
     }
 };
+
 export const buscarReceitasPorTitulo = async (titulo: string): Promise<Receita[]> => {
     try {
         const response = await fetch(`${BASE_URL}/receitas/busca/${encodeURIComponent(titulo)}`);
@@ -138,6 +154,7 @@ export const buscarReceitasPorTitulo = async (titulo: string): Promise<Receita[]
         return [];
     }
 };
+
 export const buscarReceitaPorId = async (id: number): Promise<Receita | null> => {
     try {
         const response = await fetch(`${BASE_URL}/receitas/${id}`);
@@ -148,6 +165,7 @@ export const buscarReceitaPorId = async (id: number): Promise<Receita | null> =>
         return null;
     }
 };
+
 export const buscarReceitasPorUsuario = async (usuarioId: number): Promise<Receita[]> => {
     try {
         const response = await fetch(`${BASE_URL}/receitas/usuario/${usuarioId}`);
@@ -158,6 +176,7 @@ export const buscarReceitasPorUsuario = async (usuarioId: number): Promise<Recei
         return [];
     }
 };
+
 export const buscarReceitasPorCategoria = async (categoriaId: number): Promise<Receita[]> => {
     try {
         const response = await fetch(`${BASE_URL}/receitas/categoria/${categoriaId}`);
@@ -168,6 +187,7 @@ export const buscarReceitasPorCategoria = async (categoriaId: number): Promise<R
         return [];
     }
 };
+
 export const criarReceita = async (receita: Receita): Promise<Receita | null> => {
     try {
         const response = await fetch(`${BASE_URL}/receitas`, {
@@ -182,6 +202,7 @@ export const criarReceita = async (receita: Receita): Promise<Receita | null> =>
         return null;
     }
 };
+
 export const atualizarReceita = async (id: number, receita: Receita): Promise<Receita | null> => {
     try {
         const response = await fetch(`${BASE_URL}/receitas/${id}`, {
@@ -196,6 +217,7 @@ export const atualizarReceita = async (id: number, receita: Receita): Promise<Re
         return null;
     }
 };
+
 export const deletarReceita = async (id: number): Promise<boolean> => {
     try {
         const response = await fetch(`${BASE_URL}/receitas/${id}`, {
@@ -219,6 +241,7 @@ export const listarPerfis = async (): Promise<Perfil[]> => {
         return [];
     }
 };
+
 export const buscarPerfilPorUsuario = async (usuarioId: number): Promise<Perfil | null> => {
     try {
         const response = await fetch(`${BASE_URL}/perfis/usuario/${usuarioId}`);
@@ -229,6 +252,7 @@ export const buscarPerfilPorUsuario = async (usuarioId: number): Promise<Perfil 
         return null;
     }
 };
+
 export const criarPerfil = async (perfil: Perfil): Promise<Perfil | null> => {
     try {
         const response = await fetch(`${BASE_URL}/perfis`, {
@@ -243,6 +267,7 @@ export const criarPerfil = async (perfil: Perfil): Promise<Perfil | null> => {
         return null;
     }
 };
+
 export const atualizarPerfil = async (id: number, perfil: Perfil): Promise<Perfil | null> => {
     try {
         const response = await fetch(`${BASE_URL}/perfis/${id}`, {
@@ -268,6 +293,7 @@ export const listarFavoritos = async (usuarioId: number): Promise<Receita[]> => 
         return [];
     }
 };
+
 export const favoritarReceita = async (usuarioId: number, receitaId: number): Promise<boolean> => {
     try {
         const payload: FavoritoDTO = { usuarioId, receitaId };
@@ -283,6 +309,7 @@ export const favoritarReceita = async (usuarioId: number, receitaId: number): Pr
         return false;
     }
 };
+
 export const desfavoritarReceita = async (usuarioId: number, receitaId: number): Promise<boolean> => {
     try {
         const payload: FavoritoDTO = { usuarioId, receitaId };
@@ -309,6 +336,7 @@ export const listarCategorias = async (): Promise<Categoria[]> => {
         return [];
     }
 };
+
 export const buscarCategoriaPorId = async (id: number): Promise<Categoria | null> => {
     try {
         const response = await fetch(`${BASE_URL}/categorias/${id}`);
@@ -319,6 +347,7 @@ export const buscarCategoriaPorId = async (id: number): Promise<Categoria | null
         return null;
     }
 };
+
 export const criarCategoria = async (categoria: Categoria): Promise<Categoria | null> => {
     try {
         const response = await fetch(`${BASE_URL}/categorias`, {
@@ -333,6 +362,7 @@ export const criarCategoria = async (categoria: Categoria): Promise<Categoria | 
         return null;
     }
 };
+
 export const deletarCategoria = async (id: number): Promise<boolean> => {
     try {
         const response = await fetch(`${BASE_URL}/categorias/${id}`, {
@@ -360,6 +390,7 @@ export const criarAvaliacao = async (avaliacao: Avaliacao): Promise<Avaliacao | 
         return null;
     }
 };
+
 export const listarAvaliacoesPorReceita = async (receitaId: number): Promise<Avaliacao[]> => {
     try {
         const response = await fetch(`${BASE_URL}/avaliacoes/receita/${receitaId}`);
@@ -370,3 +401,39 @@ export const listarAvaliacoesPorReceita = async (receitaId: number): Promise<Ava
         return [];
     }
 };
+
+// Objeto padrão para compatibilidade com a branch do Allan (HomeScreen, RegisterScreen, etc.)
+const api = {
+    getReceitas: async (): Promise<any[]> => {
+        try {
+            const response = await fetch(`${BASE_URL}/receitas`);
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar receitas:', error);
+            return [];
+        }
+    },
+
+    post: async (endpoint: string, bodyData: object) => {
+        try {
+            const response = await fetch(`${BASE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bodyData),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(`Erro no POST em ${endpoint}:`, error);
+            throw error;
+        }
+    }
+};
+
+export default api;
