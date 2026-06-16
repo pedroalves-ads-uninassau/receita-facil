@@ -40,6 +40,7 @@ public class Receita {
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Usuario autor;
 
     @Column(name = "usuario_id")

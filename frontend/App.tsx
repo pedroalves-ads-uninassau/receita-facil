@@ -5,7 +5,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
-// Telas
 import SplashScreen from './src/screens/SplashScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -20,7 +19,6 @@ import AddRecipeScreen from './src/screens/AddRecipeScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Cria o componente com as Abas na parte inferior da tela
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -35,7 +33,6 @@ function MainTabs() {
           else if (route.name === 'FavoritesTab') iconName = focused ? 'heart' : 'heart-outline';
           else if (route.name === 'ProfileTab') iconName = focused ? 'person' : 'person-outline';
 
-          // Aumentar o botão do meio (Adicionar Receita)
           if (route.name === 'AddTab') {
             return <Ionicons name={iconName} size={40} color="#FF7F24" style={{ marginTop: -10 }} />;
           }
@@ -52,7 +49,7 @@ function MainTabs() {
           paddingBottom: 5,
           paddingTop: 5,
         },
-        tabBarShowLabel: false, // Esconde os textos para ficar mais parecido com app moderno
+        tabBarShowLabel: false,
       })}
     >
       <Tab.Screen name="HomeTab" component={HomeScreen} />
@@ -76,11 +73,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        
-        {/* Quando for para a Home, ele carrega o MainTabs, ativando a barra inferior */}
         <Stack.Screen name="Home" component={MainTabs} />
-        
-        {/* Telas que não tem a barra embaixo ficam aqui soltas */}
         <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>

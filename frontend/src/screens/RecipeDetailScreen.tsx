@@ -1,55 +1,95 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { buscarReceitaPorId, criarAvaliacao, favoritarReceita, desfavoritarReceita, Receita } from '../services/api';
 
-type Props = {
-  route: any;
-  navigation: any;
-};
-
-export default function RecipeDetailScreen({ route, navigation }: Props) {
-  // Simulando os dados que virão da rota ou da API do Spring Boot
-  const receita = {
-    id: 1,
-    titulo: 'Panqueca Americana',
-    tempo_preparo: 15,
-    ingredientes: '• 1 xícara de farinha de trigo\n• 2 colheres de sopa de açúcar\n• 2 colheres de chá de fermento\n• 1 ovo\n• 1 xícara de leite',
-    passo_a_passo: '1. Misture os ingredientes secos em uma tigela.\n2. Adicione o ovo e o leite, batendo até ficar homogêneo.\n3. Aqueça uma frigideira antiaderente e coloque porções da massa.\n4. Vire quando surgirem bolhas.',
-    imagem_url: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93'
-  };
-
-  // Estados para o formulário de avaliação do usuário e favoritos
+export default function RecipeDetailScreen({ route, navigation }: any) {
+  const { receitaId } = route.params;
+  
+  const [receita, setReceita] = useState<Receita | null>(null);
+  const [carregando, setCarregando] = useState(true);
   const [notaUsuario, setNotaUsuario] = useState(0);
   const [comentario, setComentario] = useState('');
   const [favoritado, setFavoritado] = useState(false);
+  
+  const usuarioIdMock = 1; 
 
-  const handleSalvarAvaliacao = () => {
-    // TODO: Integrar com o POST de /avaliacoes do seu Backend em Spring Boot
-    alert(`Avaliação enviada com sucesso!\nNota: ${notaUsuario}\nComentário: ${comentario || "Nenhum"}`);
-    setNotaUsuario(0);
-    setComentario('');
+  useEffect(() => {
+    carregarReceita();
+  }, [receitaId]);
+
+  const carregarReceita = async () => {
+    setCarregando(true);
+    const dados = await buscarReceitaPorId(receitaId);
+    if (dados) {
+      setReceita(dados);
+    } else {
+      Alert.alert('Erro', 'Não foi possível carregar a receita.');
+      navigation.goBack();
+    }
+    setCarregando(false);
   };
+
+  const handleSalvarAvaliacao = async () => {
+    if (!receita?.id) return;
+    
+    const response = await criarAvaliacao({
+      usuarioId: usuarioIdMock,
+      receitaId: receita.id,
+      nota: notaUsuario,
+      comentario: comentario
+    });
+
+    if (response) {
+      Alert.alert('Sucesso', 'Avaliação enviada com sucesso!');
+      setNotaUsuario(0);
+      setComentario('');
+    } else {
+      Alert.alert('Erro', 'Falha ao enviar avaliação.');
+    }
+  };
+
+  const toggleFavorito = async () => {
+    if (!receita?.id) return;
+
+    if (favoritado) {
+      const sucesso = await desfavoritarReceita(usuarioIdMock, receita.id);
+      if (sucesso) setFavoritado(false);
+    } else {
+      const sucesso = await favoritarReceita(usuarioIdMock, receita.id);
+      if (sucesso) setFavoritado(true);
+    }
+  };
+
+  if (carregando || !receita) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF7F24" />
+      </View>
+    );
+  }
+
+  const imageUrl = receita.imagens && receita.imagens.length > 0 
+    ? receita.imagens[0].url 
+    : 'https://images.unsplash.com/photo-1528207776546-365bb710ee93';
 
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         
-        {/* Seção da Imagem da Receita */}
         <View style={styles.imageContainer}>
           <Image 
-            source={{ uri: receita.imagem_url }} 
+            source={{ uri: imageUrl }} 
             style={styles.imagemReceita} 
           />
           
-          {/* Botão Voltar Reaproveitado do seu código */}
           <TouchableOpacity style={styles.botaoVoltarTopo} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#23374C" />
           </TouchableOpacity>
 
-          {/* Botão de Favoritar (Alimenta a tabela ReceitasFavoritas) */}
           <TouchableOpacity 
             style={styles.botaoFavoritar} 
-            onPress={() => setFavoritado(!favoritado)}
+            onPress={toggleFavorito}
           >
             <Ionicons 
               name={favoritado ? "heart" : "heart-outline"} 
@@ -59,34 +99,28 @@ export default function RecipeDetailScreen({ route, navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Informações da Receita */}
         <View style={styles.content}>
           <Text style={styles.titulo}>{receita.titulo}</Text>
           
-          {/* Campo tempo_preparo do banco de dados */}
           <View style={styles.metaRow}>
             <Ionicons name="time-outline" size={20} color="#FF7F24" />
-            <Text style={styles.tempoTexto}>{receita.tempo_preparo} minutos</Text>
+            <Text style={styles.tempoTexto}>{receita.tempoPreparo} minutos</Text>
           </View>
 
           <View style={styles.divisor} />
 
-          {/* Lista de Ingredientes */}
           <Text style={styles.subtitulo}>Ingredientes</Text>
           <Text style={styles.textoCorpo}>{receita.ingredientes}</Text>
 
           <View style={styles.divisor} />
 
-          {/* Passo a Passo / Modo de Preparo */}
           <Text style={styles.subtitulo}>Modo de Preparo</Text>
-          <Text style={styles.textoCorpo}>{receita.passo_a_passo}</Text>
+          <Text style={styles.textoCorpo}>{receita.passoAPasso}</Text>
 
           <View style={styles.divisor} />
 
-          {/* Formulário de Avaliação (Requisito: Nota de 1 a 5) */}
           <Text style={styles.subtitulo}>Avalie esta Receita</Text>
           
-          {/* Estrelas Selecionáveis */}
           <View style={styles.estrelasRow}>
             {[1, 2, 3, 4, 5].map((estrela) => (
               <TouchableOpacity key={estrela} onPress={() => setNotaUsuario(estrela)}>
@@ -100,7 +134,6 @@ export default function RecipeDetailScreen({ route, navigation }: Props) {
             ))}
           </View>
 
-          {/* Comentário Opcional (Campo TEXT do MySQL) */}
           <TextInput
             style={styles.inputComentario}
             placeholder="Deixe uma opinião sobre o prato (opcional)..."
@@ -111,7 +144,6 @@ export default function RecipeDetailScreen({ route, navigation }: Props) {
             onChangeText={setComentario}
           />
 
-          {/* Botão de Enviar Reaproveitado e Adaptado */}
           <TouchableOpacity 
             style={[styles.botao, notaUsuario === 0 && styles.botaoDesabilitado]} 
             onPress={handleSalvarAvaliacao}
@@ -128,6 +160,12 @@ export default function RecipeDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFF8E7',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#FFF8E7',
   },
   imageContainer: {

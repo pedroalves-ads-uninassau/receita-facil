@@ -1,7 +1,6 @@
 import { Platform } from 'react-native';
 
-// Lembre-se de verificar se a porta do seu backend é a 8080!
-const BASE_URL = 'http://10.100.2.32:8080';
+const BASE_URL = 'http://192.168.100.145:8080';
 
 export enum TipoUsuario {
     COMUM = 'COMUM',
@@ -63,7 +62,6 @@ export interface FavoritoDTO {
     receitaId: number;
 }
 
-// Funções da API (Exportações nomeadas da branch main)
 export const login = async (usuario: Partial<Usuario>): Promise<Usuario | null> => {
     try {
         const response = await fetch(`${BASE_URL}/usuarios/login`, {
@@ -74,7 +72,7 @@ export const login = async (usuario: Partial<Usuario>): Promise<Usuario | null> 
         if (!response.ok) throw new Error('Falha na autenticação');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao realizar login:', error);
+        console.error(error);
         return null;
     }
 };
@@ -85,7 +83,7 @@ export const listarUsuarios = async (): Promise<Usuario[]> => {
         if (!response.ok) throw new Error('Falha ao obter lista de usuários');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao listar usuários:', error);
+        console.error(error);
         return [];
     }
 };
@@ -100,7 +98,7 @@ export const cadastrarUsuario = async (usuario: Usuario): Promise<Usuario | null
         if (!response.ok) throw new Error('Falha ao cadastrar usuário');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao cadastrar usuário:', error);
+        console.error(error);
         return null;
     }
 };
@@ -115,7 +113,7 @@ export const atualizarUsuario = async (id: number, usuario: Usuario): Promise<Us
         if (!response.ok) throw new Error('Falha ao atualizar usuário');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao atualizar usuário:', error);
+        console.error(error);
         return null;
     }
 };
@@ -128,7 +126,7 @@ export const deletarUsuario = async (id: number): Promise<boolean> => {
         if (!response.ok) throw new Error('Falha ao deletar usuário');
         return true;
     } catch (error) {
-        console.error('Erro ao deletar usuário:', error);
+        console.error(error);
         return false;
     }
 };
@@ -139,7 +137,7 @@ export const getReceitas = async (): Promise<Receita[]> => {
         if (!response.ok) throw new Error('Falha ao obter receitas');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao buscar receitas:', error);
+        console.error(error);
         return [];
     }
 };
@@ -150,7 +148,7 @@ export const buscarReceitasPorTitulo = async (titulo: string): Promise<Receita[]
         if (!response.ok) throw new Error('Falha na busca por título');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao buscar receitas por título:', error);
+        console.error(error);
         return [];
     }
 };
@@ -161,7 +159,7 @@ export const buscarReceitaPorId = async (id: number): Promise<Receita | null> =>
         if (!response.ok) throw new Error('Falha ao buscar receita por ID');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao obter receita por ID:', error);
+        console.error(error);
         return null;
     }
 };
@@ -172,7 +170,7 @@ export const buscarReceitasPorUsuario = async (usuarioId: number): Promise<Recei
         if (!response.ok) throw new Error('Falha ao buscar receitas do chef');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao buscar receitas por usuário:', error);
+        console.error(error);
         return [];
     }
 };
@@ -183,7 +181,7 @@ export const buscarReceitasPorCategoria = async (categoriaId: number): Promise<R
         if (!response.ok) throw new Error('Falha ao buscar receitas por categoria');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao buscar receitas por categoria:', error);
+        console.error(error);
         return [];
     }
 };
@@ -198,7 +196,7 @@ export const criarReceita = async (receita: Receita): Promise<Receita | null> =>
         if (!response.ok) throw new Error('Falha ao criar receita');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao criar receita:', error);
+        console.error(error);
         return null;
     }
 };
@@ -213,7 +211,7 @@ export const atualizarReceita = async (id: number, receita: Receita): Promise<Re
         if (!response.ok) throw new Error('Falha ao atualizar receita');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao atualizar receita:', error);
+        console.error(error);
         return null;
     }
 };
@@ -226,7 +224,7 @@ export const deletarReceita = async (id: number): Promise<boolean> => {
         if (!response.ok) throw new Error('Falha ao deletar receita');
         return true;
     } catch (error) {
-        console.error('Erro ao deletar receita:', error);
+        console.error(error);
         return false;
     }
 };
@@ -237,7 +235,7 @@ export const listarPerfis = async (): Promise<Perfil[]> => {
         if (!response.ok) throw new Error('Falha ao obter perfis');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao obter perfis:', error);
+        console.error(error);
         return [];
     }
 };
@@ -248,7 +246,7 @@ export const buscarPerfilPorUsuario = async (usuarioId: number): Promise<Perfil 
         if (!response.ok) throw new Error('Falha ao buscar perfil por usuário');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao buscar perfil por usuário:', error);
+        console.error(error);
         return null;
     }
 };
@@ -263,7 +261,7 @@ export const criarPerfil = async (perfil: Perfil): Promise<Perfil | null> => {
         if (!response.ok) throw new Error('Falha ao criar perfil de chef');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao criar perfil de chef:', error);
+        console.error(error);
         return null;
     }
 };
@@ -278,7 +276,7 @@ export const atualizarPerfil = async (id: number, perfil: Perfil): Promise<Perfi
         if (!response.ok) throw new Error('Falha ao atualizar perfil');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao atualizar perfil:', error);
+        console.error(error);
         return null;
     }
 };
@@ -289,7 +287,7 @@ export const listarFavoritos = async (usuarioId: number): Promise<Receita[]> => 
         if (!response.ok) throw new Error('Falha ao listar receitas favoritas');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao listar receitas favoritas:', error);
+        console.error(error);
         return [];
     }
 };
@@ -305,7 +303,7 @@ export const favoritarReceita = async (usuarioId: number, receitaId: number): Pr
         if (!response.ok) throw new Error('Falha ao favoritar receita');
         return true;
     } catch (error) {
-        console.error('Erro ao favoritar receita:', error);
+        console.error(error);
         return false;
     }
 };
@@ -321,7 +319,7 @@ export const desfavoritarReceita = async (usuarioId: number, receitaId: number):
         if (!response.ok) throw new Error('Falha ao desfavoritar receita');
         return true;
     } catch (error) {
-        console.error('Erro ao desfavoritar receita:', error);
+        console.error(error);
         return false;
     }
 };
@@ -332,7 +330,7 @@ export const listarCategorias = async (): Promise<Categoria[]> => {
         if (!response.ok) throw new Error('Falha ao obter categorias');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao listar categorias:', error);
+        console.error(error);
         return [];
     }
 };
@@ -343,7 +341,7 @@ export const buscarCategoriaPorId = async (id: number): Promise<Categoria | null
         if (!response.ok) throw new Error('Falha ao obter categoria por ID');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao obter categoria por ID:', error);
+        console.error(error);
         return null;
     }
 };
@@ -358,7 +356,7 @@ export const criarCategoria = async (categoria: Categoria): Promise<Categoria | 
         if (!response.ok) throw new Error('Falha ao criar categoria');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao criar categoria:', error);
+        console.error(error);
         return null;
     }
 };
@@ -371,7 +369,7 @@ export const deletarCategoria = async (id: number): Promise<boolean> => {
         if (!response.ok) throw new Error('Falha ao deletar categoria');
         return true;
     } catch (error) {
-        console.error('Erro ao deletar categoria:', error);
+        console.error(error);
         return false;
     }
 };
@@ -386,7 +384,7 @@ export const criarAvaliacao = async (avaliacao: Avaliacao): Promise<Avaliacao | 
         if (!response.ok) throw new Error('Falha ao registrar avaliação');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao registrar avaliação:', error);
+        console.error(error);
         return null;
     }
 };
@@ -397,43 +395,7 @@ export const listarAvaliacoesPorReceita = async (receitaId: number): Promise<Ava
         if (!response.ok) throw new Error('Falha ao listar avaliações da receita');
         return await response.json();
     } catch (error) {
-        console.error('Erro ao buscar avaliações da receita:', error);
+        console.error(error);
         return [];
     }
 };
-
-// Objeto padrão para compatibilidade com a branch do Allan (HomeScreen, RegisterScreen, etc.)
-const api = {
-    getReceitas: async (): Promise<any[]> => {
-        try {
-            const response = await fetch(`${BASE_URL}/receitas`);
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao buscar receitas:', error);
-            return [];
-        }
-    },
-
-    post: async (endpoint: string, bodyData: object) => {
-        try {
-            const response = await fetch(`${BASE_URL}${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(bodyData),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro na requisição: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erro no POST em ${endpoint}:`, error);
-            throw error;
-        }
-    }
-};
-
-export default api;

@@ -20,7 +20,9 @@
   <a href="#-funcionalidades">Funcionalidades</a> •
   <a href="#-tecnologias">Tecnologias</a> •
   <a href="#-arquitetura-e-banco-de-dados">Arquitetura</a> •
-  <a href="#-como-executar-e-testar-no-iphone-expo-go">Como Executar</a> •
+  <a href="#-design-e-documentação">Design & Docs</a> •
+  <a href="#-como-executar-e-testar">Como Executar</a> •
+  <a href="#-como-testar-a-api">API & Swagger</a> •
   <a href="#-autores">Autores</a>
 </p>
 
@@ -60,7 +62,15 @@ A modelagem do banco de dados relacional foi normalizada até a **3ª Forma Norm
 - **Categorias e Imagens (N:N e 1:N):** As receitas são classificadas em várias categorias simultaneamente e suportam uma galeria de fotos.
 - **Avaliações e Favoritos (N:N):** A comunidade interage ativamente, linkando múltiplos usuários a múltiplas receitas.
 
-Os scripts completos de inicialização, criação das tabelas, e popularização de dados com a linguagem DDL e DML do MySQL encontram-se disponíveis no sistema e na pasta correspondente de banco de dados (`/database` se aplicável).
+### DER do Banco de Dados
+![Modelagem do Banco de Dados](./arquivos/BANCO_DE_DADOS-RECEITA-FACIL.PNG)
+
+---
+
+## 🎨 Design e Documentação
+
+- **Figma Original do Projeto:** [Acessar o Figma Interativo](https://www.figma.com/make/H2spizXgTVjxh9maa9Dh9H/Receita-F%C3%A1cil?p=f&fullscreen=1)
+- **Documentação em PDF:** [Projeto Receita Fácil - Uninassau - ADS 3º _B_.pdf](./arquivos/Projeto%20Receita%20Fácil%20-%20Uninassau%20-%20ADS%203º%20_B_.pdf)
 
 ---
 
@@ -68,110 +78,68 @@ Os scripts completos de inicialização, criação das tabelas, e popularizaçã
 
 ### Passo 1: O Banco de Dados (O Cofre)
 1. Abra o seu **XAMPP**, ligue o Apache e depois o **MySQL**. Em seguida, aperte em "Admin" na linha do MySQL.
-
 2. Abra o navegador e acesse `http://localhost/phpmyadmin`.
-
 3. Vá na aba **"Importar"**, selecione o arquivo `database/receita_facil.sql` e aperte em **Executar** no final da página.
- 
-   *(Se você já fez isso uma vez e deu tela verde, o banco está pronto).*
 
-### Passo 2: Dentro da pasta Receita Fácil no VS Code, Ligar o Java (Backend)
-1. Abra o seu terminal e entre na pasta do backend:
-   
-   cd backend
- 
-2. Digite o comando para ligar o servidor Java:
-   
-   ./mvnw spring-boot:run
+**Contas Padrão (Criadas pelo Script DB):**
+* Admin: `admin@teste.com` | Senha: `123` *(Acesso Administrativo)*
+* Chef: `chef@teste.com` | Senha: `123` *(Posta receitas)*
+* Comum: `comum@teste.com` | Senha: `123` *(Visualiza e favoritar)*
 
-3. Espere uns 15 segundos. Se nas últimas linhas do texto aparecer `Tomcat started on port 8080`, **Sucesso!** O Java ligou.
+### Passo 2: Ligar o Backend (Spring Boot)
+1. Abra o seu terminal e entre na pasta do backend: `cd backend`
+2. Digite o comando para ligar o servidor Java: `./mvnw spring-boot:run`
+3. Se aparecer `Tomcat started on port 8080`, **Sucesso!** 
 
+**Acesse o Backend Ativo no Navegador:** 
+👉 **[http://localhost:8080/](http://localhost:8080/)**
 
-### Passo 3: Ligar o Celular (Frontend)
-1. Abra **outra janela** de terminal (já que a do Java tem que ficar rodando).
+### Passo 3: Ligar o Frontend (React Expo)
+1. Abra **outra janela** de terminal e entre na pasta do frontend: `cd frontend`
+2. Digite o comando para ligar o aplicativo: `npx expo start --tunnel --clear`
+3. O terminal vai perguntar se você quer logar. Pressione a **Seta para Baixo** no teclado para selecionar `Proceed Anonymously` e aperte **Enter**.
+4. Um QR Code gigante vai aparecer na tela.
 
-2. Entre na pasta do frontend:
+### Passo 4: Escolha como quer Testar (PC ou Celular)
 
-   cd frontend
-
-3. Digite o comando para ligar o aplicativo no modo túnel (que dribla bloqueios de Wi-Fi e Firewall) e limpa o cache:
-   
-   npx expo start --tunnel --clear
-
-4. O terminal vai perguntar se você quer logar. Pressione a **Seta para Baixo** no teclado para selecionar `Proceed Anonymously` e aperte **Enter**.
-
-### ⚠️ Dica Crucial: Conectando o Celular ao Backend
-Se você for testar no **celular físico (Expo Go)**, o `localhost` não vai funcionar. Você precisa trocar o endereço no código para o **IP da sua máquina**.
-4.1.  **Descubra seu IP**: No terminal do seu PC, digite `ipconfig`.
-4.2.  Procure por **"Endereço IPv4"** (exemplo: `192.168.1.15`).
-4.3.  **Troque no Código**: Abra o arquivo `frontend/src/services/api.js` e altere a linha:
-   
-    const BASE_URL = 'http://192.168.1.15:8080'; // Coloque o SEU IP aqui
-   
-4.4.  **Importante**: O celular e o computador devem estar na **mesma rede Wi-Fi**.
-
-5. Um QR Code gigante vai aparecer na tela.
-
-### Passo 4: Escolha como quer Testar
-
-**Opção A: No Computador (Mais Rápido)**
+**Opção A: No Computador (Web - Mais Rápido)**
 * No mesmo terminal onde está o QR Code, aperte a letra **`w`** no seu teclado.
+* Uma janela do navegador será aberta automaticamente com o aplicativo rodando simulado no PC.
+* *Nota:* No PC, o `localhost` costuma funcionar sem problemas, então não é necessário trocar o IP.
 
-
-**Opção B: No Celular (O Teste Real)**
-* Pegue seu iPhone ou Android e abra o aplicativo **Expo Go**.
-* Use a câmera (ou o botão Scan do Android) para ler o QR Code na tela do PC.
-
----
-
-## 🧪 Como Testar a API (Endpoints de Usuários)
-
-Para testar o backend localmente, você pode utilizar o **Postman** ou o **Insomnia**. Certifique-se de que o servidor Spring Boot está rodando (`http://localhost:8080`).
-
-### 1. Listar Usuários (GET)
-Retorna a lista de todos os usuários cadastrados.
-- **Método:** `GET`
-- **URL:** `http://localhost:8080/usuarios`
-- **Body:** *(Não necessário)*
-
-### 2. Criar Usuário (POST)
-Cria um novo usuário no banco de dados.
-- **Método:** `POST`
-- **URL:** `http://localhost:8080/usuarios`
-- **Body (JSON):**
-
-{
-  "nome": "João Silva",
-  "email": "joao@email.com",
-  "senha": "senha123"
-}
-
-
-### 3. Atualizar Usuário (PUT)
-Atualiza os dados de um usuário específico pelo seu ID.
-- **Método:** `PUT`
-- **URL:** `http://localhost:8080/usuarios/{id}` *(Exemplo: /usuarios/2)*
-- **Body (JSON):**
-
-{
-  "nome": "João Silva Alterado",
-  "email": "joao@email.com",
-  "senha": "nova_senha_456"
-}
-
-
-### 4. Deletar Usuário (DELETE)
-Exclui permanentemente um usuário do sistema.
-- **Método:** `DELETE`
-- **URL:** `http://localhost:8080/usuarios/{id}` *(Exemplo: /usuarios/2)*
-- **Body:** *(Não necessário)*
+**Opção B: No Celular (O Teste Real no iPhone/Android)**
+Se você for testar no **celular físico (Expo Go)**, o `localhost` não vai funcionar porque o celular e o PC têm endereços diferentes. Você precisa apontar o código para o **IP da sua máquina**:
+1. **Descubra seu IP**: No terminal do seu PC, digite `ipconfig` e procure o "Endereço IPv4" (ex: `192.168.100.145`).
+2. **Troque no Código**: Abra o arquivo `frontend/src/services/api.ts` e altere a `BASE_URL`:
+   `const BASE_URL = 'http://SEU_IP:8080';`
+3. Abra o aplicativo **Expo Go** no seu celular e leia o QR Code na tela do PC.
+4. **Importante**: Celular e computador devem estar na **mesma rede Wi-Fi**.
 
 ---
 
-## 📖 Documentação da API (Swagger)
+## 🧪 Como Testar a API & Swagger
 
-A documentação interativa da API pode ser acessada através do Swagger UI. Certifique-se de que o backend esteja rodando e acesse:
-- [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+A API REST do backend está totalmente documentada e validada. Você pode testar todas as requisições de Usuários, Receitas e Categorias de duas formas:
+
+### 1. Documentação Interativa (Swagger UI)
+A forma mais fácil de testar o backend é diretamente pelo navegador através do Swagger. Com o backend rodando, acesse:
+👉 **[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)**
+
+![Swagger UI](./arquivos/SWAGGER_RECEITA-FACIL.png)
+
+### 2. Endpoints Principais (Exemplo de Usuários)
+
+**GET /usuarios**
+![Listar Usuários](./arquivos/GET_USUARIOS_RECEITA-FACIL.PNG)
+
+**POST /usuarios**
+![Criar Usuário](./arquivos/POST_USUARIOS_RECEITA-FACIL.PNG)
+
+**PUT /usuarios/{id}**
+![Atualizar Usuário](./arquivos/PUT_USUARIOS_RECEITA-FACIL.PNG)
+
+**DELETE /usuarios/{id}**
+![Deletar Usuário](./arquivos/DELETE_USUARIOS_RECEITA-FACIL.PNG)
 
 ---
 

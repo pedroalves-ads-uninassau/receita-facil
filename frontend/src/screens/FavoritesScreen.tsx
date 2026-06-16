@@ -1,37 +1,43 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { listarFavoritos, desfavoritarReceita, Receita } from '../services/api';
 
-type Props = {
-  navigation: any;
-};
+export default function FavoritesScreen({ navigation }: any) {
+  const [favoritos, setFavoritos] = useState<Receita[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
-export default function FavoritesScreen({ navigation }: Props) {
-  // Simulando receitas favoritadas vindas do banco cruzando Usuario e ReceitasFavoritas
-  const [favoritos, setFavoritos] = useState([
-    {
-      id: 1,
-      titulo: 'Panqueca americana',
-      tempo_preparo: 15,
-      imagem_url: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93',
-    },
-    {
-      id: 2,
-      titulo: 'Macarrão ao alho e óleo',
-      tempo_preparo: 25,
-      imagem_url: 'https://images.unsplash.com/photo-1621510456681-23a23cfb5f57',
-    }
-  ]);
+  const usuarioIdMock = 1;
 
-  // Função para remover dos favoritos (simula o DELETE na tabela associativa)
-  const removerFavorito = (id: number) => {
-    setFavoritos(favoritos.filter(item => item.id !== id));
-    // TODO: Fazer a requisição DELETE para a API do Spring Boot (/favoritos/{id})
+  useEffect(() => {
+    carregarFavoritos();
+  }, []);
+
+  const carregarFavoritos = async () => {
+    setCarregando(true);
+    const data = await listarFavoritos(usuarioIdMock);
+    setFavoritos(data);
+    setCarregando(false);
   };
+
+  const removerFavorito = async (id?: number) => {
+    if (!id) return;
+    const sucesso = await desfavoritarReceita(usuarioIdMock, id);
+    if (sucesso) {
+      setFavoritos(favoritos.filter(item => item.id !== id));
+    }
+  };
+
+  if (carregando) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF7F24" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* Cabeçalho superior */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#23374C" />
@@ -39,7 +45,6 @@ export default function FavoritesScreen({ navigation }: Props) {
         <Text style={styles.tituloTela}>Meus Favoritos</Text>
       </View>
 
-      {/* Listagem de Favoritos */}
       <View style={styles.content}>
         {favoritos.length === 0 ? (
           <View style={styles.emptyState}>
@@ -54,36 +59,39 @@ export default function FavoritesScreen({ navigation }: Props) {
         ) : (
           <FlatList
             data={favoritos}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => (item.id || Math.random()).toString()}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listaContainer}
-            renderItem={({ item }) => (
-              <TouchableOpacity 
-                style={styles.card} 
-                onPress={() => navigation.navigate('RecipeDetail', { recipeId: item.id })}
-              >
-                {/* Imagem da Receita */}
-                <Image source={{ uri: item.imagem_url }} style={styles.imagemCard} />
-                
-                {/* Informações da Receita */}
-                <View style={styles.infoCard}>
-                  <Text style={styles.tituloCard} numberOfLines={1}>{item.titulo}</Text>
-                  
-                  <View style={styles.metaRow}>
-                    <Ionicons name="time-outline" size={16} color="#FF7F24" />
-                    <Text style={styles.tempoTexto}>{item.tempo_preparo} min</Text>
-                  </View>
-                </View>
+            renderItem={({ item }) => {
+              const imageUrl = item.imagens && item.imagens.length > 0 
+                ? item.imagens[0].url 
+                : 'https://images.unsplash.com/photo-1528207776546-365bb710ee93';
 
-                {/* Botão de Remover rápido */}
+              return (
                 <TouchableOpacity 
-                  style={styles.botaoRemover} 
-                  onPress={() => removerFavorito(item.id)}
+                  style={styles.card} 
+                  onPress={() => navigation.navigate('RecipeDetail', { receitaId: item.id })}
                 >
-                  <Ionicons name="heart" size={24} color="#E33E3E" />
+                  <Image source={{ uri: imageUrl }} style={styles.imagemCard} />
+                  
+                  <View style={styles.infoCard}>
+                    <Text style={styles.tituloCard} numberOfLines={1}>{item.titulo}</Text>
+                    
+                    <View style={styles.metaRow}>
+                      <Ionicons name="time-outline" size={16} color="#FF7F24" />
+                      <Text style={styles.tempoTexto}>{item.tempoPreparo} min</Text>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity 
+                    style={styles.botaoRemover} 
+                    onPress={() => removerFavorito(item.id)}
+                  >
+                    <Ionicons name="heart" size={24} color="#E33E3E" />
+                  </TouchableOpacity>
                 </TouchableOpacity>
-              </TouchableOpacity>
-            )}
+              );
+            }}
           />
         )}
       </View>
@@ -94,6 +102,12 @@ export default function FavoritesScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFF8E7',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#FFF8E7',
   },
   header: {

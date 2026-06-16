@@ -165,24 +165,9 @@ CREATE TABLE `receitasfavoritas` (
 
 -- --------------------------------------------------------
 
---
--- Estrutura para tabela `receitas_favoritas`
---
 
-CREATE TABLE `receitas_favoritas` (
-  `created_at` datetime(6) DEFAULT NULL,
-  `id_receita` bigint(20) NOT NULL,
-  `id_usuario` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Despejando dados para a tabela `receitas_favoritas`
---
 
-INSERT INTO `receitas_favoritas` (`created_at`, `id_receita`, `id_usuario`) VALUES
-('2026-04-29 22:38:02.000000', 1, 1),
-('2026-04-29 22:36:33.000000', 2, 1),
-('2026-04-29 22:38:03.000000', 3, 1);
 
 -- --------------------------------------------------------
 
@@ -262,12 +247,7 @@ ALTER TABLE `receitasfavoritas`
   ADD PRIMARY KEY (`id_usuario`,`id_receita`),
   ADD KEY `id_receita` (`id_receita`);
 
---
--- Índices de tabela `receitas_favoritas`
---
-ALTER TABLE `receitas_favoritas`
-  ADD PRIMARY KEY (`id_receita`,`id_usuario`),
-  ADD KEY `FKjot9wmvwlv03851ke07io3poa` (`id_usuario`);
+
 
 --
 -- Índices de tabela `usuario`
@@ -359,12 +339,7 @@ ALTER TABLE `receitasfavoritas`
   ADD CONSTRAINT `receitasfavoritas_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `receitasfavoritas_ibfk_2` FOREIGN KEY (`id_receita`) REFERENCES `receitas` (`id`) ON DELETE CASCADE;
 
---
--- Restrições para tabelas `receitas_favoritas`
---
-ALTER TABLE `receitas_favoritas`
-  ADD CONSTRAINT `FKjot9wmvwlv03851ke07io3poa` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id`),
-  ADD CONSTRAINT `FKoih7yx7ovw1wve1ukogljn5fo` FOREIGN KEY (`id_receita`) REFERENCES `receitas` (`id`);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

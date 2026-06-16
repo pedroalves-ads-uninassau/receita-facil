@@ -1,35 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { listarCategorias, buscarReceitasPorTitulo, buscarReceitasPorCategoria, getReceitas, Categoria, Receita } from '../services/api';
+import RecipeCard from '../components/RecipeCard';
 
-type Props = {
-  navigation: any;
-};
-
-// Categorias vindas diretamente do script SQL do seu projeto
-const CATEGORIAS_PROJETO = [
-  'Todos', 'Café da Manhã', 'Almoço', 'Jantar', 'Sobremesa', 'Vegano', 'Massas', 'Lanches'
-];
-
-export default function SearchScreen({ navigation }: Props) {
+export default function SearchScreen({ navigation }: any) {
   const [pesquisa, setPesquisa] = useState('');
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState('Todos');
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<number | null>(null);
   const [buscarPorIngrediente, setBuscarPorIngrediente] = useState(false);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [resultados, setResultados] = useState<Receita[]>([]);
 
-  // Função "Search-as-you-type" (atualiza o estado a cada caractere)
-  const handleSearch = (text: string) => {
-    setPesquisa(text);
-    // TODO: Aqui será chamada a rota da API Spring Boot passando o termo digitado
+  useEffect(() => {
+    carregarCategorias();
+  }, []);
+
+  useEffect(() => {
+    if (pesquisa.length > 0) {
+      realizarBusca(pesquisa, buscarPorIngrediente);
+    } else if (categoriaSelecionada !== null) {
+      buscarPorCategoria(categoriaSelecionada);
+    } else {
+      setResultados([]);
+    }
+  }, [pesquisa, buscarPorIngrediente, categoriaSelecionada]);
+
+  const carregarCategorias = async () => {
+    const cats = await listarCategorias();
+    setCategorias(cats);
   };
 
-  const selecionarCategoria = (categoria: string) => {
-    setCategoriaSelecionada(categoria);
-    // TODO: Filtrar a requisição por ID de Categoria vindo da API
+  const realizarBusca = async (texto: string, porIngrediente: boolean) => {
+    if (porIngrediente) {
+      const todas = await getReceitas();
+      const filtradas = todas.filter(r => r.ingredientes?.toLowerCase().includes(texto.toLowerCase()));
+      setResultados(filtradas);
+    } else {
+      const res = await buscarReceitasPorTitulo(texto);
+      setResultados(res);
+    }
+  };
+
+  const buscarPorCategoria = async (id: number) => {
+    const res = await buscarReceitasPorCategoria(id);
+    setResultados(res);
+  };
+
+  const handleSearch = (text: string) => {
+    setPesquisa(text);
+    if (text.length === 0 && categoriaSelecionada === null) {
+      setResultados([]);
+    }
+  };
+
+  const selecionarCategoria = (id: number | null) => {
+    if (categoriaSelecionada === id) {
+      setCategoriaSelecionada(null);
+      if (pesquisa.length > 0) {
+        realizarBusca(pesquisa, buscarPorIngrediente);
+      } else {
+        setResultados([]);
+      }
+    } else {
+      setCategoriaSelecionada(id);
+      setPesquisa('');
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Cabeçalho */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#23374C" />
@@ -37,7 +76,6 @@ export default function SearchScreen({ navigation }: Props) {
         <Text style={styles.tituloTela}>Buscar Receitas</Text>
       </View>
 
-      {/* Container do Input de Busca */}
       <View style={styles.searchContainer}>
         <View style={styles.inputWrapper}>
           <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
@@ -55,10 +93,12 @@ export default function SearchScreen({ navigation }: Props) {
           )}
         </View>
 
-        {/* Botão de Alternância de Tipo de Busca (Título vs Ingredientes) */}
         <TouchableOpacity 
           style={[styles.botaoFiltroTipo, buscarPorIngrediente && styles.botaoFiltroAtivo]}
-          onPress={() => setBuscarPorIngrediente(!buscarPorIngrediente)}
+          onPress={() => {
+            setBuscarPorIngrediente(!buscarPorIngrediente);
+            setCategoriaSelecionada(null);
+          }}
         >
           <Ionicons 
             name={buscarPorIngrediente ? "nutrition" : "nutrition-outline"} 
@@ -71,42 +111,43 @@ export default function SearchScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
 
-      {/* Filtro de Categorias Horizontal */}
       <View style={styles.categoriasContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollCategorias}>
-          {CATEGORIAS_PROJETO.map((cat) => (
+          {categorias.map((cat) => (
             <TouchableOpacity
-              key={cat}
+              key={cat.id?.toString()}
               style={[
                 styles.chipCategoria,
-                categoriaSelecionada === cat && styles.chipCategoriaSelecionado
+                categoriaSelecionada === cat.id && styles.chipCategoriaSelecionado
               ]}
-              onPress={() => selecionarCategoria(cat)}
+              onPress={() => selecionarCategoria(cat.id || null)}
             >
               <Text style={[
                 styles.textoCategoria,
-                categoriaSelecionada === cat && styles.textoCategoriaSelecionado
+                categoriaSelecionada === cat.id && styles.textoCategoriaSelecionado
               ]}>
-                {cat}
+                {cat.nomeCategoria}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      {/* Resultados da Pesquisa */}
       <View style={styles.resultadosContainer}>
-        {pesquisa.length === 0 && categoriaSelecionada === 'Todos' ? (
+        {pesquisa.length === 0 && categoriaSelecionada === null ? (
           <View style={styles.emptyState}>
             <Ionicons name="restaurant-outline" size={60} color="#CCC" />
             <Text style={styles.textoEmptyState}>Digite o nome do prato ou escolha uma categoria para começar!</Text>
           </View>
         ) : (
           <FlatList
-            data={[]} // Aqui entrará o array de receitas vindo da resposta do Axios/Spring Boot
-            keyExtractor={(item: any) => item.id.toString()}
+            data={resultados}
+            keyExtractor={(item) => (item.id || Math.random()).toString()}
             renderItem={({ item }) => (
-              <View><Text>Card da Receita</Text></View>
+              <RecipeCard 
+                recipe={item} 
+                onPress={() => navigation.navigate('RecipeDetail', { receitaId: item.id })} 
+              />
             )}
             ListEmptyComponent={
               <Text style={styles.textoSemResultados}>Nenhuma receita encontrada para os filtros aplicados.</Text>
