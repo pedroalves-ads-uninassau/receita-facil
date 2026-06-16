@@ -123,7 +123,7 @@ export default function AddRecipeScreen({ navigation }: any) {
           ))}
         </View>
 
-        <Text style={styles.label}>Foto da Receita (Link ou Gerar Automático)</Text>
+        <Text style={styles.label}>Link da Imagem da Receita</Text>
         <TextInput
           style={styles.input}
           placeholder="Ex: https://linkdafoto.com/imagem.jpg"
@@ -132,17 +132,6 @@ export default function AddRecipeScreen({ navigation }: any) {
           onChangeText={setImagemUrl}
           autoCapitalize="none"
         />
-        
-        <View style={styles.rowBotoesGerar}>
-          <TouchableOpacity style={styles.botaoGerarMini} onPress={() => setImagemUrl('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80')}>
-            <Ionicons name="fast-food-outline" size={16} color="#FFF" />
-            <Text style={styles.textoGerarMini}>Gerar Almoço</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.botaoGerarMini} onPress={() => setImagemUrl('https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=800&q=80')}>
-            <Ionicons name="ice-cream-outline" size={16} color="#FFF" />
-            <Text style={styles.textoGerarMini}>Gerar Doce</Text>
-          </TouchableOpacity>
-        </View>
 
         <Text style={styles.label}>Ingredientes *</Text>
         <TextInput
@@ -273,24 +262,5 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  rowBotoesGerar: {
-    flexDirection: 'row',
-    marginTop: 8,
-    gap: 10,
-  },
-  botaoGerarMini: {
-    flexDirection: 'row',
-    backgroundColor: '#23374C',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  textoGerarMini: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginLeft: 5,
   }
 });
