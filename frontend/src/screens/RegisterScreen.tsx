@@ -1,40 +1,39 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Alert } from 'react-native';
-import api from '../services/api';
+import { cadastrarUsuario, TipoUsuario } from '../services/api';
 
-type Props = {
-  navigation: any;
-};
-
-export default function RegisterScreen({ navigation }: Props) {
-const [nome, setNome] = useState<string>('');
-const [email, setEmail] = useState<string>('');
-const [senha, setSenha] = useState<string>('');
+export default function RegisterScreen({ navigation }: any) {
+  const [nome, setNome] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [senha, setSenha] = useState<string>('');
+  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(TipoUsuario.COMUM);
 
   async function cadastrar() {
-  if (!nome || !email || !senha) {
-    Alert.alert('Erro', 'Preencha todos os campos');
-    return;
+    if (!nome || !email || !senha) {
+      Alert.alert('Erro', 'Preencha todos os campos');
+      return;
+    }
+
+    try {
+      const response = await cadastrarUsuario({
+        nome,
+        email,
+        senha,
+        tipoUsuario
+      });
+
+      if (response) {
+        Alert.alert('Sucesso', 'Conta criada com sucesso!');
+        navigation.navigate('Login');
+      } else {
+        Alert.alert('Erro', 'Erro ao criar conta. Tente novamente.');
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Erro', 'Erro de conexão com o servidor');
+    }
   }
-
-  try {
-    const response = await api.post('/users/register', {
-      nome,
-      email,
-      senha,
-    });
-
-    Alert.alert('Sucesso', 'Conta criada com sucesso!');
-
-    navigation.navigate('Login');
-
-  } catch (error: any) {
-    console.log(error?.response?.data || error.message);
-    Alert.alert('Erro', 'Erro ao criar conta');
-  }
-}
 
   return (
     <KeyboardAvoidingView 
@@ -64,12 +63,31 @@ const [senha, setSenha] = useState<string>('');
 
         <View style={styles.inputBox}>
           <Ionicons name="mail-outline" size={20} color="#888" style={styles.icon} />
-          <TextInput style={styles.input} placeholder="Seu email" placeholderTextColor="#999" value={email} onChangeText={setEmail}/>
+          <TextInput style={styles.input} placeholder="Seu email" placeholderTextColor="#999" value={email} onChangeText={setEmail} autoCapitalize="none"/>
         </View>
         
         <View style={styles.inputBox}>
           <Ionicons name="lock-closed-outline" size={20} color="#888" style={styles.icon} />
           <TextInput style={styles.input} placeholder="Sua senha" placeholderTextColor="#999" secureTextEntry value={senha} onChangeText={setSenha}/>
+        </View>
+
+        <Text style={styles.labelTipo}>Tipo de Conta:</Text>
+        <View style={styles.tipoContainer}>
+          <TouchableOpacity 
+            style={[styles.tipoBotao, tipoUsuario === TipoUsuario.COMUM && styles.tipoBotaoAtivo]}
+            onPress={() => setTipoUsuario(TipoUsuario.COMUM)}
+          >
+            <Ionicons name="person" size={20} color={tipoUsuario === TipoUsuario.COMUM ? "#FFF" : "#FF7F24"} />
+            <Text style={[styles.textoTipo, tipoUsuario === TipoUsuario.COMUM && styles.textoTipoAtivo]}>Comum</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.tipoBotao, tipoUsuario === TipoUsuario.CHEF && styles.tipoBotaoAtivo]}
+            onPress={() => setTipoUsuario(TipoUsuario.CHEF)}
+          >
+            <Ionicons name="restaurant" size={20} color={tipoUsuario === TipoUsuario.CHEF ? "#FFF" : "#FF7F24"} />
+            <Text style={[styles.textoTipo, tipoUsuario === TipoUsuario.CHEF && styles.textoTipoAtivo]}>Chef</Text>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.botao} onPress={cadastrar}>
@@ -95,11 +113,11 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#FF7F24', // Laranja Receita Fácil
+    backgroundColor: '#FF7F24',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    elevation: 5, // Sombra
+    elevation: 5,
   },
   areaLogin: {
     marginTop: 30,
@@ -165,11 +183,46 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   textoBotao: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  labelTipo: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  tipoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  tipoBotao: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#FF7F24',
+    borderRadius: 12,
+    marginHorizontal: 5,
+  },
+  tipoBotaoAtivo: {
+    backgroundColor: '#FF7F24',
+  },
+  textoTipo: {
+    color: '#FF7F24',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  textoTipoAtivo: {
+    color: '#FFF',
   }
 });

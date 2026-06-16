@@ -1,58 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   TouchableOpacity, 
   TextInput, 
-  ScrollView 
+  ScrollView,
+  Alert 
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { criarReceita, listarCategorias, Categoria } from '../services/api';
 
-type Props = {
-  navigation: any;
-};
-
-// Categorias mapeadas conforme seu banco de dados
-const CATEGORIAS_CADASTRO = [
-  'Café da Manhã', 'Almoço', 'Jantar', 'Sobremesa', 'Vegano', 'Massas', 'Lanches'
-];
-
-export default function AddRecipeScreen({ navigation }: Props) {
-  // Estados para cada campo exigido no modelo lógico do banco
+export default function AddRecipeScreen({ navigation }: any) {
   const [titulo, setTitulo] = useState('');
   const [tempo, setTempo] = useState('');
-  const [categoria, setCategoria] = useState('');
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<Categoria | null>(null);
   const [imagemUrl, setImagemUrl] = useState('');
   const [ingredientes, setIngredientes] = useState('');
   const [passoAPasso, setPassoAPasso] = useState('');
+  
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [usuarioId, setUsuarioId] = useState<number | null>(null);
 
-  // Validação simples: desabilita o botão se faltar algo essencial
-  const formularioValido = titulo && tempo && categoria && ingredientes && passoAPasso;
+  useEffect(() => {
+    carregarUsuario();
+    carregarCategorias();
+  }, []);
 
-  const handleCadastrarReceita = () => {
-    if (!formularioValido) return;
+  const carregarUsuario = async () => {
+    const uStr = await AsyncStorage.getItem('usuarioId');
+    if (uStr) setUsuarioId(parseInt(uStr));
+  };
+
+  const carregarCategorias = async () => {
+    const cats = await listarCategorias();
+    if (cats && cats.length > 0) {
+      setCategorias(cats);
+    } else {
+      setCategorias([
+        { id: 1, nomeCategoria: 'Massas' },
+        { id: 2, nomeCategoria: 'Carnes' },
+        { id: 3, nomeCategoria: 'Sobremesas' },
+        { id: 4, nomeCategoria: 'Saudável' }
+      ]);
+    }
+  };
+
+  const formularioValido = titulo && tempo && categoriaSelecionada && ingredientes && passoAPasso;
+
+  const handleCadastrarReceita = async () => {
+    if (!formularioValido || !usuarioId) return;
 
     const novaReceitaData = {
       titulo,
-      tempo_preparo: parseInt(tempo, 10),
-      categoria,
-      imagem_url: imagemUrl || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352', // Fallback caso não coloque foto
+      tempoPreparo: parseInt(tempo, 10),
+      passoAPasso,
       ingredientes,
-      passo_a_passo: passoAPasso
+      usuarioId: usuarioId,
+      categorias: categoriaSelecionada ? [categoriaSelecionada] : [],
+      imagens: imagemUrl ? [{ url: imagemUrl }] : []
     };
 
-    // TODO: Disparar requisição POST usando Axios/Fetch para o back-end (/receitas)
-    console.log('Enviando para o Spring Boot:', novaReceitaData);
-    alert('Receita enviada com sucesso para aprovação!');
+    const response = await criarReceita(novaReceitaData);
     
-    // Volta para o perfil ou home
-    navigation.goBack();
+    if (response) {
+      Alert.alert('Sucesso', 'Receita enviada com sucesso!');
+      navigation.goBack();
+    } else {
+      Alert.alert('Erro', 'Ocorreu um erro ao cadastrar a receita.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Cabeçalho fixo */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#23374C" />
@@ -60,10 +81,8 @@ export default function AddRecipeScreen({ navigation }: Props) {
         <Text style={styles.tituloTela}>Nova Receita</Text>
       </View>
 
-      {/* Formulário com Rolagem */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.formContainer}>
         
-        {/* Campo: Título */}
         <Text style={styles.label}>Nome da Receita *</Text>
         <TextInput
           style={styles.input}
@@ -73,7 +92,6 @@ export default function AddRecipeScreen({ navigation }: Props) {
           onChangeText={setTitulo}
         />
 
-        {/* Campo: Tempo de Preparo */}
         <Text style={styles.label}>Tempo de Preparo (minutos) *</Text>
         <TextInput
           style={styles.input}
@@ -84,29 +102,27 @@ export default function AddRecipeScreen({ navigation }: Props) {
           onChangeText={setTempo}
         />
 
-        {/* Campo: Categoria (Chips Selecionáveis) */}
         <Text style={styles.label}>Selecione a Categoria *</Text>
         <View style={styles.categoriasWrapper}>
-          {CATEGORIAS_CADASTRO.map((cat) => (
+          {categorias.map((cat) => (
             <TouchableOpacity
-              key={cat}
+              key={(cat.id || Math.random()).toString()}
               style={[
                 styles.chipCategoria,
-                categoria === cat && styles.chipCategoriaSelecionado
+                categoriaSelecionada?.id === cat.id && styles.chipCategoriaSelecionado
               ]}
-              onPress={() => setCategoria(cat)}
+              onPress={() => setCategoriaSelecionada(cat)}
             >
               <Text style={[
                 styles.textoCategoria,
-                categoria === cat && styles.textoCategoriaSelecionado
+                categoriaSelecionada?.id === cat.id && styles.textoCategoriaSelecionado
               ]}>
-                {cat}
+                {cat.nomeCategoria}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Campo: URL da Imagem */}
         <Text style={styles.label}>Link da Imagem da Receita</Text>
         <TextInput
           style={styles.input}
@@ -114,9 +130,9 @@ export default function AddRecipeScreen({ navigation }: Props) {
           placeholderTextColor="#999"
           value={imagemUrl}
           onChangeText={setImagemUrl}
+          autoCapitalize="none"
         />
 
-        {/* Campo: Ingredientes */}
         <Text style={styles.label}>Ingredientes *</Text>
         <TextInput
           style={[styles.input, styles.inputLongo]}
@@ -128,7 +144,6 @@ export default function AddRecipeScreen({ navigation }: Props) {
           onChangeText={setIngredientes}
         />
 
-        {/* Campo: Modo de Preparo */}
         <Text style={styles.label}>Modo de Preparo / Passo a Passo *</Text>
         <TextInput
           style={[styles.input, styles.inputLongo]}
@@ -140,7 +155,6 @@ export default function AddRecipeScreen({ navigation }: Props) {
           onChangeText={setPassoAPasso}
         />
 
-        {/* Botão de Envio adaptado */}
         <TouchableOpacity 
           style={[styles.botaoSalvar, !formularioValido && styles.botaoDesabilitado]} 
           onPress={handleCadastrarReceita}

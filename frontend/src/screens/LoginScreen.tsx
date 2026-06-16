@@ -1,42 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../services/api';
-
-type Props = {
-  navigation: any;
-};
-
+import { login } from '../services/api';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState<string>('');
   const [senha, setSenha] = useState<string>('');
 
   async function entrar(): Promise<void> {
-  try {
-    const response = await fetch('http://localhost:8080', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        senha,
-      }),
-    });
+    try {
+      const usuarioLogado = await login({ email, senha });
 
-    const data = await response.json();
-
-    if (response.ok) {
-      navigation.navigate('Home');
-    } else {
-      alert(data.mensagem || 'Email ou senha inválidos');
+      if (usuarioLogado) {
+        navigation.navigate('Home');
+      } else {
+        Alert.alert('Erro', 'Email ou senha inválidos');
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Erro', 'Erro ao conectar com o servidor');
     }
-  } catch (error) {
-    console.log(error);
-    alert('Erro ao conectar com o servidor');
   }
-}
 
   function irParaCadastro(): void {
     navigation.navigate('Register');
@@ -68,6 +52,7 @@ export default function LoginScreen({ navigation }: any) {
             placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
+            autoCapitalize="none"
           />
         </View>
         
@@ -102,7 +87,7 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E7', // Cor de fundo suave (creme)
+    backgroundColor: '#FFF8E7',
     justifyContent: 'center',
     padding: 24,
   },
@@ -114,16 +99,16 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#FF7F24', // Laranja Receita Fácil
+    backgroundColor: '#FF7F24',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    elevation: 5, // Sombra
+    elevation: 5,
   },
   titulo: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#23374C', // Azul marinho
+    color: '#23374C',
   },
   subtitulo: {
     fontSize: 16,
@@ -134,7 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     padding: 20,
     borderRadius: 20,
-    elevation: 3, // Sombrinha
+    elevation: 3,
   },
   inputBox: {
     flexDirection: 'row',

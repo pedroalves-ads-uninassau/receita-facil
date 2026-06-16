@@ -1,90 +1,115 @@
-import React, { useState } from 'react';
-import { View,  Text,  StyleSheet, TouchableOpacity, Image, FlatList, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Alert, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { buscarPerfilPorUsuario, atualizarPerfil, atualizarUsuario, buscarReceitasPorUsuario, TipoUsuario, Perfil, Receita } from '../services/api';
 
-type Props = {
-  navigation: any;
-};
+export default function ProfileScreen({ navigation }: any) {
+  const [usuarioId, setUsuarioId] = useState<number | null>(null);
 
-export default function ProfileScreen({ navigation }: Props) {
-  // Estado com os dados do usuário (Simulando vindo da tabela Usuario do MySQL)
-  const [usuario, setUsuario] = useState({
-    nome: 'Allan Silva',
-    email: 'allan@uninassau.edu.br',
-    bio: 'Chef apaixonado por culinária regional e receitas práticas.',
-    isChef: true, // Se for true, libera edição e listagem das próprias receitas
-  });
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [minhasReceitas, setMinhasReceitas] = useState<Receita[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
-  // Estado para controlar se o perfil está em modo de edição
   const [isEditing, setIsEditing] = useState(false);
-  const [nomeEditado, setNomeEditado] = useState(usuario.nome);
-  const [bioEditada, setBioEditada] = useState(usuario.bio);
+  const [nomeEditado, setNomeEditado] = useState('');
+  const [bioEditada, setBioEditada] = useState('');
 
-  // Simulando as receitas criadas por ESSE Chef (tabela Receita filtrada pelo id_usuario)
-  const [minhasReceitas, setMinhasReceitas] = useState([
-    {
-      id: 101,
-      titulo: 'Cuscuz Recheado de Frigideira',
-      tempo_preparo: 10,
-      imagem_url: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc',
-    },
-    {
-      id: 102,
-      titulo: 'Bolo de Rolo Prático',
-      tempo_preparo: 40,
-      imagem_url: 'https://images.unsplash.com/photo-1607958996333-41aef7caefaa',
+  useEffect(() => {
+    carregarDados();
+  }, []);
+
+  const carregarDados = async () => {
+    setCarregando(true);
+    let uId = usuarioId;
+    if (!uId) {
+      const uStr = await AsyncStorage.getItem('usuarioId');
+      if (uStr) {
+        uId = parseInt(uStr);
+        setUsuarioId(uId);
+      }
     }
-  ]);
 
-  const handleSalvarPerfil = () => {
-    setUsuario({
-      ...usuario,
-      nome: nomeEditado,
-      bio: bioEditada
-    });
-    setIsEditing(false);
-    // TODO: Enviar um PUT para o endpoint /usuarios/{id} no Spring Boot
-    alert('Perfil atualizado com sucesso!');
+    if (uId) {
+      const perfilData = await buscarPerfilPorUsuario(uId);
+      if (perfilData) {
+        setPerfil(perfilData);
+        setNomeEditado(perfilData.usuario?.nome || '');
+        setBioEditada(perfilData.descricao || '');
+
+        if (perfilData.usuario?.tipoUsuario === TipoUsuario.CHEF) {
+          const receitas = await buscarReceitasPorUsuario(uId);
+          setMinhasReceitas(receitas);
+        }
+      }
+    }
+    setCarregando(false);
   };
 
-  const handleLogout = () => {
+  const handleSalvarPerfil = async () => {
+    if (!perfil || !perfil.usuario || !usuarioId) return;
+
+    const sucessoUsuario = await atualizarUsuario(usuarioId, {
+      ...perfil.usuario,
+      nome: nomeEditado,
+    });
+
+    const sucessoPerfil = await atualizarPerfil(perfil.id!, {
+      ...perfil,
+      descricao: bioEditada,
+    });
+
+    if (sucessoUsuario && sucessoPerfil) {
+      Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+      setPerfil(sucessoPerfil);
+      setIsEditing(false);
+    } else {
+      Alert.alert('Erro', 'Falha ao atualizar o perfil.');
+    }
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('usuarioId');
+    await AsyncStorage.removeItem('usuarioNome');
+    await AsyncStorage.removeItem('usuarioEmail');
+    await AsyncStorage.removeItem('usuarioTipo');
     navigation.replace('Login');
   };
 
+  if (carregando) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF7F24" />
+      </View>
+    );
+  }
+
+  const isChef = perfil?.usuario?.tipoUsuario === TipoUsuario.CHEF;
+  const iniciais = perfil?.usuario?.nome ? perfil.usuario.nome.substring(0, 2).toUpperCase() : 'US';
+
   return (
     <View style={styles.container}>
-      {/* Cabeçalho */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#23374C" />
-        </TouchableOpacity>
-        <Text style={styles.tituloTela}>Meu Perfil</Text>
-      </View>
+      {/* Removido o cabeçalho desnecessário com o botão de voltar */}
 
-      {/* Lista Principal: O Header da lista renderiza o Perfil do usuário */}
       <FlatList
-        data={usuario.isChef ? minhasReceitas : []}
-        keyExtractor={(item) => item.id.toString()}
+        data={isChef ? minhasReceitas : []}
+        keyExtractor={(item) => (item.id || Math.random()).toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        
-        // Cabeçalho da Lista (Dados do Usuário + Formulário de Edição)
         ListHeaderComponent={
           <View>
             <View style={styles.profileCard}>
               <View style={styles.avatarContainer}>
-                <Image 
-                  source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde' }} 
-                  style={styles.avatar} 
-                />
-                {usuario.isChef && (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarTexto}>{iniciais}</Text>
+                </View>
+                {isChef && (
                   <View style={styles.badgeChef}>
                     <Ionicons name="restaurant" size={14} color="#FFF" />
                   </View>
                 )}
               </View>
 
-              {/* Condicional: Modo de Edição vs Modo de Visualização */}
               {isEditing ? (
                 <View style={styles.formEdicao}>
                   <Text style={styles.labelInput}>Nome:</Text>
@@ -113,19 +138,18 @@ export default function ProfileScreen({ navigation }: Props) {
                 </View>
               ) : (
                 <View style={styles.infosUsuario}>
-                  <Text style={styles.nomeUsuario}>{usuario.nome}</Text>
-                  <Text style={styles.emailUsuario}>{usuario.email}</Text>
-                  <Text style={styles.bioUsuario}>{usuario.bio}</Text>
+                  <Text style={styles.nomeUsuario}>{perfil?.usuario?.nome}</Text>
+                  <Text style={styles.emailUsuario}>{perfil?.usuario?.email}</Text>
+                  <Text style={styles.bioUsuario}>{perfil?.descricao}</Text>
                   
                   <View style={styles.rowBadges}>
-                    {usuario.isChef && (
+                    {isChef && (
                       <View style={styles.tagChefContainer}>
                         <Text style={styles.tagChefTexto}>Chef Criador</Text>
                       </View>
                     )}
                     
-                    {/* Botão de Editar exclusivo para o Chef */}
-                    {usuario.isChef && (
+                    {isChef && (
                       <TouchableOpacity style={styles.botaoEditar} onPress={() => setIsEditing(true)}>
                         <Ionicons name="create-outline" size={16} color="#FFF" />
                         <Text style={styles.textoBotaoEditar}>Editar Perfil</Text>
@@ -136,39 +160,38 @@ export default function ProfileScreen({ navigation }: Props) {
               )}
             </View>
 
-            {/* Seção das Receitas Criadas (Apenas para o Chef) */}
-            {usuario.isChef && (
+            {isChef && (
               <Text style={styles.tituloSecao}>Minhas Receitas Publicadas</Text>
             )}
           </View>
         }
+        renderItem={({ item }) => {
+          const imageUrl = item.imagens && item.imagens.length > 0 
+            ? item.imagens[0].url 
+            : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc';
 
-        // Renderização dos Cards de Receitas do Próprio Chef
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.cardReceita}
-            onPress={() => navigation.navigate('RecipeDetail', { recipeId: item.id })}
-          >
-            <Image source={{ uri: item.imagem_url }} style={styles.imagemCard} />
-            <View style={styles.infoCard}>
-              <Text style={styles.tituloCard} numberOfLines={1}>{item.titulo}</Text>
-              <View style={styles.metaRow}>
-                <Ionicons name="time-outline" size={16} color="#FF7F24" />
-                <Text style={styles.tempoTexto}>{item.tempo_preparo} min</Text>
+          return (
+            <TouchableOpacity 
+              style={styles.cardReceita}
+              onPress={() => navigation.navigate('RecipeDetail', { receitaId: item.id })}
+            >
+              <Image source={{ uri: imageUrl }} style={styles.imagemCard} />
+              <View style={styles.infoCard}>
+                <Text style={styles.tituloCard} numberOfLines={1}>{item.titulo}</Text>
+                <View style={styles.metaRow}>
+                  <Ionicons name="time-outline" size={16} color="#FF7F24" />
+                  <Text style={styles.tempoTexto}>{item.tempoPreparo} min</Text>
+                </View>
               </View>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#23374C" />
-          </TouchableOpacity>
-        )}
-
-        // Estado Vazio caso o Chef não tenha publicado nenhuma receita ainda
+              <Ionicons name="chevron-forward" size={20} color="#23374C" />
+            </TouchableOpacity>
+          );
+        }}
         ListEmptyComponent={
-          usuario.isChef ? (
+          isChef ? (
             <Text style={styles.textoSemReceitas}>Você ainda não publicou nenhuma receita.</Text>
           ) : null
         }
-
-        // Rodapé da lista com o botão de sair da conta
         ListFooterComponent={
           <TouchableOpacity style={styles.botaoSair} onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={22} color="#E33E3E" />
@@ -183,6 +206,12 @@ export default function ProfileScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFF8E7',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#FFF8E7',
   },
   header: {
@@ -221,11 +250,18 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 12,
   },
-  avatar: {
+  avatarPlaceholder: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#EEE',
+    backgroundColor: '#23374C',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarTexto: {
+    color: '#FFF',
+    fontSize: 32,
+    fontWeight: 'bold',
   },
   badgeChef: {
     position: 'absolute',
