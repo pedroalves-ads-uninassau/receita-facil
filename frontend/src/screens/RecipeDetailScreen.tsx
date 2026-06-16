@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { buscarReceitaPorId, criarAvaliacao, favoritarReceita, desfavoritarReceita, Receita } from '../services/api';
+import { buscarReceitaPorId, criarAvaliacao, favoritarReceita, desfavoritarReceita, listarAvaliacoesPorReceita, Receita, Avaliacao } from '../services/api';
 
 export default function RecipeDetailScreen({ route, navigation }: any) {
   const { receitaId } = route.params;
@@ -11,18 +12,26 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   const [notaUsuario, setNotaUsuario] = useState(0);
   const [comentario, setComentario] = useState('');
   const [favoritado, setFavoritado] = useState(false);
-  
-  const usuarioIdMock = 1; 
+  const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
+  const [usuarioId, setUsuarioId] = useState<number | null>(null);
 
   useEffect(() => {
-    carregarReceita();
+    carregarUsuario();
+    carregarReceitaEAvaliacoes();
   }, [receitaId]);
 
-  const carregarReceita = async () => {
+  const carregarUsuario = async () => {
+    const uStr = await AsyncStorage.getItem('usuarioId');
+    if (uStr) setUsuarioId(parseInt(uStr));
+  };
+
+  const carregarReceitaEAvaliacoes = async () => {
     setCarregando(true);
     const dados = await buscarReceitaPorId(receitaId);
     if (dados) {
       setReceita(dados);
+      const avaliacoesData = await listarAvaliacoesPorReceita(receitaId);
+      setAvaliacoes(avaliacoesData);
     } else {
       Alert.alert('Erro', 'Não foi possível carregar a receita.');
       navigation.goBack();
@@ -32,9 +41,13 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
 
   const handleSalvarAvaliacao = async () => {
     if (!receita?.id) return;
+    if (!usuarioId) {
+      Alert.alert('Erro', 'Você precisa estar logado para avaliar.');
+      return;
+    }
     
     const response = await criarAvaliacao({
-      usuarioId: usuarioIdMock,
+      usuarioId: usuarioId,
       receitaId: receita.id,
       nota: notaUsuario,
       comentario: comentario
@@ -44,6 +57,8 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
       Alert.alert('Sucesso', 'Avaliação enviada com sucesso!');
       setNotaUsuario(0);
       setComentario('');
+      const atualizadas = await listarAvaliacoesPorReceita(receita.id);
+      setAvaliacoes(atualizadas);
     } else {
       Alert.alert('Erro', 'Falha ao enviar avaliação.');
     }
@@ -51,12 +66,16 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
 
   const toggleFavorito = async () => {
     if (!receita?.id) return;
+    if (!usuarioId) {
+      Alert.alert('Atenção', 'Faça login para favoritar.');
+      return;
+    }
 
     if (favoritado) {
-      const sucesso = await desfavoritarReceita(usuarioIdMock, receita.id);
+      const sucesso = await desfavoritarReceita(usuarioId, receita.id);
       if (sucesso) setFavoritado(false);
     } else {
-      const sucesso = await favoritarReceita(usuarioIdMock, receita.id);
+      const sucesso = await favoritarReceita(usuarioId, receita.id);
       if (sucesso) setFavoritado(true);
     }
   };
@@ -74,8 +93,8 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
     : 'https://images.unsplash.com/photo-1528207776546-365bb710ee93';
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         
         <View style={styles.imageContainer}>
           <Image 
@@ -151,9 +170,35 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           >
             <Text style={styles.textoBotao}>Enviar Avaliação</Text>
           </TouchableOpacity>
+
+          <View style={styles.divisor} />
+          
+          <Text style={styles.subtitulo}>Avaliações da Comunidade ({avaliacoes.length})</Text>
+          {avaliacoes.length === 0 ? (
+            <Text style={styles.textoCorpo}>Seja o primeiro a avaliar esta receita!</Text>
+          ) : (
+            avaliacoes.map((av, index) => (
+              <View key={av.id || index} style={styles.cardAvaliacao}>
+                <View style={styles.estrelasCard}>
+                  {[1, 2, 3, 4, 5].map((e) => (
+                    <Ionicons 
+                      key={e} 
+                      name={e <= av.nota ? "star" : "star-outline"} 
+                      size={14} 
+                      color="#FF7F24" 
+                    />
+                  ))}
+                </View>
+                {av.comentario ? (
+                  <Text style={styles.textoComentario}>{av.comentario}</Text>
+                ) : null}
+              </View>
+            ))
+          )}
+
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -281,5 +326,21 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  cardAvaliacao: {
+    backgroundColor: '#FFF',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E6DCC3',
+  },
+  estrelasCard: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  textoComentario: {
+    fontSize: 14,
+    color: '#444',
   }
 });

@@ -189,9 +189,9 @@ CREATE TABLE `usuario` (
 --
 
 INSERT INTO `usuario` (`id`, `nome`, `email`, `senha`, `tipo_usuario`, `created_at`) VALUES
-(1, 'Admin Teste', 'admin@teste.com', '$2b$12$rkkb7Iv8S6WiL', 'ADMIN', '2026-04-25 23:45:24'),
-(2, 'Chef Teste', 'chef@teste.com', '$2b$12$rkkb7Iv8S6WiL', 'CHEF', '2026-04-25 23:45:24'),
-(3, 'Comum Teste', 'comum@teste.com', '$2b$12$rkkb7Iv8S6WiL', 'COMUM', '2026-04-25 23:45:24');
+(1, 'Admin Teste', 'admin@teste.com', '123', 'ADMIN', '2026-04-25 23:45:24'),
+(2, 'Chef Teste', 'chef@teste.com', '123', 'CHEF', '2026-04-25 23:45:24'),
+(3, 'Comum Teste', 'comum@teste.com', '123', 'COMUM', '2026-04-25 23:45:24');
 
 --
 -- Índices para tabelas despejadas

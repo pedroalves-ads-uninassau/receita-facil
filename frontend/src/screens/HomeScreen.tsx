@@ -1,6 +1,7 @@
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Dimensions, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Swiper from 'react-native-deck-swiper';
 import { getReceitas, favoritarReceita, Receita } from '../services/api';
@@ -12,11 +13,21 @@ export default function HomeScreen({ navigation }: any) {
   const [receitas, setReceitas] = useState<Receita[]>([]);
   const [carregando, setCarregando] = useState<boolean>(true);
   const [indiceAtual, setIndiceAtual] = useState<number>(0);
-  const usuarioIdMock = 1;
+  const [usuarioId, setUsuarioId] = useState<number | null>(null);
 
   useEffect(() => {
+    carregarUsuario();
     carregarDoBanco();
   }, []);
+
+  async function carregarUsuario() {
+    try {
+      const uStr = await AsyncStorage.getItem('usuarioId');
+      if (uStr) setUsuarioId(parseInt(uStr));
+    } catch (e) {
+      console.log('Erro ao ler AsyncStorage', e);
+    }
+  }
 
   async function carregarDoBanco() {
     try {
@@ -33,9 +44,13 @@ export default function HomeScreen({ navigation }: any) {
   async function favoritar() {
     const receita = receitas[indiceAtual];
     if (!receita?.id) return;
+    if (!usuarioId) {
+      Alert.alert('Atenção', 'Você precisa estar logado para favoritar.');
+      return;
+    }
 
     try {
-      const sucesso = await favoritarReceita(usuarioIdMock, receita.id);
+      const sucesso = await favoritarReceita(usuarioId, receita.id);
       if (sucesso) {
         Alert.alert('Sucesso', 'Receita adicionada aos favoritos!');
       }
@@ -71,6 +86,19 @@ export default function HomeScreen({ navigation }: any) {
   const receitaAtiva = receitas[indiceAtual];
 
   if (!receitaAtiva) {
+    if (receitas.length > 0) {
+      // Tem receitas mas o usuário já viu todas
+      return (
+        <View style={styles.loadingContainer}>
+          <Ionicons name="checkmark-done-circle" size={80} color="#FF7F24" />
+          <Text style={styles.loadingTexto}>Você viu todas as receitas!</Text>
+          <TouchableOpacity style={styles.botaoRecarregar} onPress={() => setIndiceAtual(0)}>
+            <Text style={styles.textoBotaoRecarregar}>Ver tudo novamente</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    // Não carregou nenhuma receita do banco
     return (
       <View style={styles.loadingContainer}>
         <Ionicons name="restaurant-outline" size={80} color="#FF7F24" />
@@ -272,4 +300,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 40,
   },
+  botaoRecarregar: {
+    marginTop: 20,
+    backgroundColor: '#FF7F24',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  textoBotaoRecarregar: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  }
 });

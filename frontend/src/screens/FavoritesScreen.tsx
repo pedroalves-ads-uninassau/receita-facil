@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { listarFavoritos, desfavoritarReceita, Receita } from '../services/api';
 
@@ -7,7 +8,7 @@ export default function FavoritesScreen({ navigation }: any) {
   const [favoritos, setFavoritos] = useState<Receita[]>([]);
   const [carregando, setCarregando] = useState(true);
 
-  const usuarioIdMock = 1;
+  const [usuarioId, setUsuarioId] = useState<number | null>(null);
 
   useEffect(() => {
     carregarFavoritos();
@@ -15,14 +16,25 @@ export default function FavoritesScreen({ navigation }: any) {
 
   const carregarFavoritos = async () => {
     setCarregando(true);
-    const data = await listarFavoritos(usuarioIdMock);
-    setFavoritos(data);
+    let uId = usuarioId;
+    if (!uId) {
+      const uStr = await AsyncStorage.getItem('usuarioId');
+      if (uStr) {
+        uId = parseInt(uStr);
+        setUsuarioId(uId);
+      }
+    }
+    
+    if (uId) {
+      const data = await listarFavoritos(uId);
+      setFavoritos(data);
+    }
     setCarregando(false);
   };
 
   const removerFavorito = async (id?: number) => {
-    if (!id) return;
-    const sucesso = await desfavoritarReceita(usuarioIdMock, id);
+    if (!id || !usuarioId) return;
+    const sucesso = await desfavoritarReceita(usuarioId, id);
     if (sucesso) {
       setFavoritos(favoritos.filter(item => item.id !== id));
     }

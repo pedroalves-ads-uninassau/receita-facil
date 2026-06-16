@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { buscarPerfilPorUsuario, atualizarPerfil, atualizarUsuario, buscarReceitasPorUsuario, TipoUsuario, Perfil, Receita } from '../services/api';
 
 export default function ProfileScreen({ navigation }: any) {
-  const usuarioIdMock = 1;
+  const [usuarioId, setUsuarioId] = useState<number | null>(null);
 
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [minhasReceitas, setMinhasReceitas] = useState<Receita[]>([]);
@@ -20,24 +21,35 @@ export default function ProfileScreen({ navigation }: any) {
 
   const carregarDados = async () => {
     setCarregando(true);
-    const perfilData = await buscarPerfilPorUsuario(usuarioIdMock);
-    if (perfilData) {
-      setPerfil(perfilData);
-      setNomeEditado(perfilData.usuario?.nome || '');
-      setBioEditada(perfilData.descricao || '');
+    let uId = usuarioId;
+    if (!uId) {
+      const uStr = await AsyncStorage.getItem('usuarioId');
+      if (uStr) {
+        uId = parseInt(uStr);
+        setUsuarioId(uId);
+      }
+    }
 
-      if (perfilData.usuario?.tipoUsuario === TipoUsuario.CHEF) {
-        const receitas = await buscarReceitasPorUsuario(usuarioIdMock);
-        setMinhasReceitas(receitas);
+    if (uId) {
+      const perfilData = await buscarPerfilPorUsuario(uId);
+      if (perfilData) {
+        setPerfil(perfilData);
+        setNomeEditado(perfilData.usuario?.nome || '');
+        setBioEditada(perfilData.descricao || '');
+
+        if (perfilData.usuario?.tipoUsuario === TipoUsuario.CHEF) {
+          const receitas = await buscarReceitasPorUsuario(uId);
+          setMinhasReceitas(receitas);
+        }
       }
     }
     setCarregando(false);
   };
 
   const handleSalvarPerfil = async () => {
-    if (!perfil || !perfil.usuario) return;
+    if (!perfil || !perfil.usuario || !usuarioId) return;
 
-    const sucessoUsuario = await atualizarUsuario(usuarioIdMock, {
+    const sucessoUsuario = await atualizarUsuario(usuarioId, {
       ...perfil.usuario,
       nome: nomeEditado,
     });
@@ -56,7 +68,11 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('usuarioId');
+    await AsyncStorage.removeItem('usuarioNome');
+    await AsyncStorage.removeItem('usuarioEmail');
+    await AsyncStorage.removeItem('usuarioTipo');
     navigation.replace('Login');
   };
 
@@ -69,15 +85,11 @@ export default function ProfileScreen({ navigation }: any) {
   }
 
   const isChef = perfil?.usuario?.tipoUsuario === TipoUsuario.CHEF;
+  const iniciais = perfil?.usuario?.nome ? perfil.usuario.nome.substring(0, 2).toUpperCase() : 'US';
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#23374C" />
-        </TouchableOpacity>
-        <Text style={styles.tituloTela}>Meu Perfil</Text>
-      </View>
+      {/* Removido o cabeçalho desnecessário com o botão de voltar */}
 
       <FlatList
         data={isChef ? minhasReceitas : []}
@@ -88,10 +100,9 @@ export default function ProfileScreen({ navigation }: any) {
           <View>
             <View style={styles.profileCard}>
               <View style={styles.avatarContainer}>
-                <Image 
-                  source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde' }} 
-                  style={styles.avatar} 
-                />
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarTexto}>{iniciais}</Text>
+                </View>
                 {isChef && (
                   <View style={styles.badgeChef}>
                     <Ionicons name="restaurant" size={14} color="#FFF" />
@@ -239,11 +250,18 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 12,
   },
-  avatar: {
+  avatarPlaceholder: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#EEE',
+    backgroundColor: '#23374C',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarTexto: {
+    color: '#FFF',
+    fontSize: 32,
+    fontWeight: 'bold',
   },
   badgeChef: {
     position: 'absolute',
